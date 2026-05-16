@@ -180,6 +180,7 @@ body{
     <div class="header-title"><span class="icon">🧊</span>盘策</div>
     <div style="display:flex;align-items:center;gap:10px">
       <span onclick="App.toggleTheme()" id="themeBtn" style="font-size:20px;cursor:pointer;padding:6px 8px;line-height:1">🌙</span>
+      <span onclick="App.refreshData()" style="font-size:20px;cursor:pointer;padding:6px 8px;line-height:1">🔄</span>
       <div class="header-status" id="statusBar"><span class="dot"></span>加载中</div>
     </div>
   </div>
@@ -1382,6 +1383,16 @@ function applyTheme(t) {
 function toggleTheme() {
   setTheme(getTheme() === 'dark' ? 'light' : 'dark');
 }
+async function refreshData() {
+  toast('刷新中...');
+  historyChartsLoaded = false;
+  await updateSentiment();
+  await monitorAlertStocks();
+  await updatePositionData();
+  updateAccount();
+  drawAssetChart();
+  toast('数据已刷新');
+}
 
 // ==================== 初始化 ====================
 function init() {
@@ -1420,7 +1431,7 @@ const App = {
   removeAlertStock, removePosStock, toggleAlertType,
   updateAccount, updateSentiment, updatePositionData,
   updateShares, updateCost,
-  requestNotify, toggleTheme
+  requestNotify, toggleTheme, refreshData
 };
 
 document.addEventListener('DOMContentLoaded', init);
