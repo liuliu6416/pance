@@ -1050,7 +1050,7 @@ function renderPosList() {
   const grades = stocks.map(s => 'ABCDE'.indexOf(getRating(s._weekChg||0, s._monthChg||0).grade));
   const avgGrade = Math.round(grades.reduce((a,b)=>a+b,0) / grades.length);
   const avgLabel = ['A','B','C','D','E'][Math.min(avgGrade,4)];
-  summaryEl.innerHTML = `共 <strong>${stocks.length}</strong> 只 · 组合评级 <strong style="color:var(--gold)">${avgLabel}级</strong> · <span style="font-size:15px;font-weight:700;color:var(--gold)">持仓市值 ¥${fmtMoney(totalMV)}</span>`;
+  summaryEl.innerHTML = `共 <strong>${stocks.length}</strong> 只 · 组合评级 <strong style="color:var(--gold)">${avgLabel}级</strong> · <span style="font-size:18px;font-weight:800;color:var(--gold)">持仓市值 ¥${fmtMoney(totalMV)}</span>`;
 
   listEl.innerHTML = stocks.map((s, i) => {
     const weekChg = s._weekChg || 0;
