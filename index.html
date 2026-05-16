@@ -161,7 +161,7 @@ body{
 <div id="app">
   <div class="header">
     <div class="header-title"><span class="icon">🧊</span>盘策</div>
-    <div class="header-status" id="statusBar"><span class="dot"></span>连接中</div>
+    <div class="header-status" id="statusBar"><span class="dot"></span>加载中</div>
   </div>
 
   <!-- Tab 0: 大盘冰点指数 -->
@@ -616,7 +616,10 @@ async function updateSentiment() {
     $('#shIndex').textContent = fmtMoney(indexData.price);
     $('#shChange').innerHTML = `<span style="color:${changeColor}">${fmtPct(indexData.changePct)}</span>`;
     $('#updateTime').textContent = '更新于 ' + new Date().toLocaleTimeString();
-    $('#statusBar').innerHTML = '<span class="dot" style="background:var(--down)"></span>已连接';
+    const status = getTradingStatus();
+    const dotCls = status.cls === 'pulse' ? 'dot' : '';
+    const dotStyle = status.cls === 'pulse' ? 'background:var(--down)' : `background:${status.color}`;
+    $('#statusBar').innerHTML = `<span class="${dotCls}" style="${dotStyle}"></span>${status.text}`;
     drawGauge(clamped, '#gaugeCanvas');
   } else {
     $('#statusBar').innerHTML = '<span class="dot" style="background:var(--orange)"></span>数据异常';
@@ -1061,17 +1064,37 @@ function switchTab(idx) {
   if (idx === 3) updateAccount();
 }
 
-// 修复没有名称的持仓股票
-async function repairStockNames() {
+// 判断是否A股交易时段
+function isTradingHours() {
+  const now = new Date();
+  const day = now.getDay();
+  if (day === 0 || day === 6) return false; // 周末
+  const h = now.getHours(), m = now.getMinutes();
+  const t = h * 60 + m;
+  return (t >= 9 * 60 + 30 && t <= 11 * 60 + 30) || (t >= 13 * 60 && t <= 15 * 60 + 5);
+}
+
+function getTradingStatus() {
+  const now = new Date();
+  const day = now.getDay();
+  if (day === 0 || day === 6) return { text: '周末休市', color: 'var(--text2)', cls: '' };
+  const h = now.getHours(), m = now.getMinutes();
+  const t = h * 60 + m;
+  if (t < 9 * 60 + 30) return { text: '盘前待开盘', color: '#4a90d9', cls: '' };
+  if (t <= 11 * 60 + 30) return { text: '交易中', color: 'var(--down)', cls: 'pulse' };
+  if (t < 13 * 60) return { text: '午间休市', color: 'var(--text2)', cls: '' };
+  if (t <= 15 * 60 + 5) return { text: '交易中', color: 'var(--down)', cls: 'pulse' };
+  return { text: '已收盘 · 数据为收盘价', color: 'var(--orange)', cls: '' };
+}
+
+// 每次打开强制从腾讯API刷新所有股票名称
+async function refreshStockNames() {
   const posStocks = getPosStocks();
   let needsSave = false;
   for (const s of posStocks) {
-    if (!s.name || s.name === '--') {
-      const sinaData = await fetchTxStock(s.code);
-      if (sinaData && sinaData.name && sinaData.name !== '--') {
-        s.name = sinaData.name;
-        needsSave = true;
-      }
+    const txData = await fetchTxStock(s.code);
+    if (txData && txData.name && txData.name !== '--') {
+      if (s.name !== txData.name) { s.name = txData.name; needsSave = true; }
     }
   }
   if (needsSave) savePosStocks(posStocks);
@@ -1079,12 +1102,9 @@ async function repairStockNames() {
   const alertStocks = getAlertStocks();
   let needsSave2 = false;
   for (const s of alertStocks) {
-    if (!s.name || s.name === '--') {
-      const sinaData = await fetchTxStock(s.code);
-      if (sinaData && sinaData.name && sinaData.name !== '--') {
-        s.name = sinaData.name;
-        needsSave2 = true;
-      }
+    const txData = await fetchTxStock(s.code);
+    if (txData && txData.name && txData.name !== '--') {
+      if (s.name !== txData.name) { s.name = txData.name; needsSave2 = true; }
     }
   }
   if (needsSave2) saveAlertStocks(alertStocks);
@@ -1097,8 +1117,8 @@ function init() {
   // 检查通知权限
   checkNotify();
 
-  // 修复旧数据中没有名称的股票
-  repairStockNames().then(() => {
+  // 每次打开强制刷新企业名称
+  refreshStockNames().then(() => {
     renderAlertList();
     renderPosList();
   });
