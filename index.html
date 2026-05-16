@@ -799,7 +799,7 @@ async function updateHistoryCharts() {
   if (shJson && shJson.data && shJson.data.klines) {
     const klines = parseKlineData(shJson);
     const chartData = klines.map(k => ({
-      date: k.date.slice(0, 4) + '/' + k.date.slice(4, 6),
+      date: k.date.slice(2, 4) + '/' + k.date.slice(4, 6),
       value: Math.round((60 + (k.close - 3000) / 100) * 10) / 10
     }));
     drawLineChart('#shChart', chartData, 60);
@@ -810,7 +810,7 @@ async function updateHistoryCharts() {
   if (cyJson2 && cyJson2.data && cyJson2.data.klines) {
     const klines = parseKlineData(cyJson2);
     const chartData = klines.map(k => ({
-      date: k.date.slice(0, 4) + '/' + k.date.slice(4, 6),
+      date: k.date.slice(2, 4) + '/' + k.date.slice(4, 6),
       value: Math.round((60 + (k.close - 2500) / 100) * 10) / 10
     }));
     drawLineChart('#cyChart', chartData, 60);
@@ -998,6 +998,17 @@ async function updatePositionData() {
     }
     stock._monthChg = stock._monthChg != null ? stock._monthChg : (stock._changePct || 0);
 
+    // 年度涨跌幅（近250个交易日）
+    const yearJson = await fetchAPI(API.kline(stock.code, 101, 250));
+    if (yearJson && yearJson.data && yearJson.data.klines) {
+      const klines = parseKlineData(yearJson);
+      if (klines.length >= 2) {
+        const first = klines[0];
+        stock._yearChg = first.close > 0 ? ((klines[klines.length-1].close - first.close) / first.close) * 100 : 0;
+      }
+    }
+    stock._yearChg = stock._yearChg != null ? stock._yearChg : (stock._changePct || 0);
+
     // 计算市值
     stock._shares = stock._shares || 0;
     stock._marketValue = stock._price * stock._shares;
@@ -1097,7 +1108,7 @@ function renderPosList() {
       <div class="pos-stats">
         <span>周 <span class="${weekChg>=0?'up':'down'}">${fmtPct(weekChg)}</span></span>
         <span>月 <span class="${monthChg>=0?'up':'down'}">${fmtPct(monthChg)}</span></span>
-        <span>昨收 ${fmtMoney(s._prevClose || '--')}</span>
+        <span>年 <span class="${(s._yearChg||0)>=0?'up':'down'}">${fmtPct(s._yearChg||0)}</span></span>
       </div>
     </div>`;
   }).join('');
