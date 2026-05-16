@@ -819,7 +819,7 @@ async function updateHistoryCharts() {
   if (shJson && shJson.data && shJson.data.klines) {
     const klines = parseKlineData(shJson);
     const chartData = klines.map(k => ({
-      date: k.date.slice(5, 7) + '月',
+      date: k.date.slice(5, 7),
       value: Math.round((60 + (k.close - 3000) / 100) * 10) / 10
     }));
     drawLineChart('#shChart', chartData, 60);
@@ -830,7 +830,7 @@ async function updateHistoryCharts() {
   if (cyJson2 && cyJson2.data && cyJson2.data.klines) {
     const klines = parseKlineData(cyJson2);
     const chartData = klines.map(k => ({
-      date: k.date.slice(5, 7) + '月',
+      date: k.date.slice(5, 7),
       value: Math.round((60 + (k.close - 2500) / 100) * 10) / 10
     }));
     drawLineChart('#cyChart', chartData, 60);
