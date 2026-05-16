@@ -20,6 +20,11 @@
   --card-hover: rgba(255,255,255,0.07);
   --text: #e8e8f0;
   --text2: #8899aa;
+  --border: rgba(255,255,255,0.06);
+  --nav-bg: var(--nav-bg);
+  --input-bg: rgba(255,255,255,0.06);
+  --input-border: rgba(255,255,255,0.1);
+  --modal-bg: #1a1a2e;
   --up: #ff4757;
   --down: #2ed573;
   --gold: #f0c040;
@@ -29,6 +34,18 @@
   --warn: #f5a623;
   --danger: #ff4757;
   --radius: 14px;
+}
+[data-theme="light"] {
+  --bg: #f0f2f5;
+  --card: rgba(0,0,0,0.03);
+  --card-hover: rgba(0,0,0,0.06);
+  --text: #1a1a2e;
+  --text2: #667788;
+  --border: rgba(0,0,0,0.06);
+  --nav-bg: rgba(245,245,248,0.97);
+  --input-bg: rgba(0,0,0,0.04);
+  --input-border: rgba(0,0,0,0.1);
+  --modal-bg: #ffffff;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 body{
@@ -72,16 +89,16 @@ body{
 .bottom-nav{
   position:fixed;bottom:0;left:50%;transform:translateX(-50%);
   width:100%;max-width:420px;display:flex;
-  background:rgba(15,15,26,0.95);backdrop-filter:blur(20px);
+  background:var(--nav-bg);backdrop-filter:blur(20px);
   -webkit-backdrop-filter:blur(20px);
-  border-top:1px solid rgba(255,255,255,0.08);
+  border-top:1px solid var(--border);
   padding:6px 0 env(safe-area-inset-bottom,8px);z-index:100;
 }
 .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 0;cursor:pointer;color:var(--text2);transition:color 0.2s;user-select:none;-webkit-user-select:none}
 .nav-item.active{color:var(--gold)}
 .nav-item .nav-icon{font-size:22px;line-height:1}
 .nav-item .nav-label{font-size:10px;margin-top:3px;font-weight:500}
-.card{background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.05)}
+.card{background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:12px;border:1px solid var(--border)}
 .card-header{font-size:13px;color:var(--text2);margin-bottom:10px;font-weight:500;letter-spacing:0.5px}
 .gauge-wrap{display:flex;flex-direction:column;align-items:center;padding:8px 0 0}
 .gauge-canvas{width:100%;max-width:300px;height:auto}
@@ -100,7 +117,7 @@ body{
 .btn-sm{padding:7px 14px;font-size:12px;border-radius:8px}
 .btn-outline{background:transparent;border:1px solid var(--gold);color:var(--gold)}
 .btn-danger{background:var(--danger);color:#fff}
-.stock-item{background:var(--card);border-radius:var(--radius);padding:14px;margin-bottom:10px;border:1px solid rgba(255,255,255,0.05);transition:background 0.2s}
+.stock-item{background:var(--card);border-radius:var(--radius);padding:14px;margin-bottom:10px;border:1px solid var(--border);transition:background 0.2s}
 .stock-item:active{background:var(--card-hover)}
 .stock-name{font-size:15px;font-weight:600;margin-bottom:2px}
 .stock-code{font-size:11px;color:var(--text2)}
@@ -110,7 +127,7 @@ body{
 .badge-down{background:rgba(46,213,115,0.2);color:var(--down)}
 .badge-A{background:rgba(255,71,87,0.25);color:#ff4757;font-size:12px;padding:4px 10px}
 .badge-B{background:rgba(255,71,87,0.12);color:#ff6b81;font-size:12px;padding:4px 10px}
-.badge-C{background:rgba(255,255,255,0.08);color:#8899aa;font-size:12px;padding:4px 10px}
+.badge-C{background:var(--border);color:#8899aa;font-size:12px;padding:4px 10px}
 .badge-D{background:rgba(46,213,115,0.12);color:#2ed573;font-size:12px;padding:4px 10px}
 .badge-E{background:rgba(46,213,115,0.25);color:#2ed573;font-size:12px;padding:4px 10px}
 .badge-safe{background:rgba(46,213,115,0.2);color:var(--safe)}
@@ -127,12 +144,12 @@ body{
 .ring-label{font-size:12px;color:var(--text2);margin-top:2px}
 .modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:200;justify-content:center;align-items:flex-end}
 .modal-overlay.show{display:flex}
-.modal{background:#1a1a2e;border-radius:18px 18px 0 0;width:100%;max-width:420px;padding:20px 16px 30px;animation:slideUp 0.3s ease}
+.modal{background:var(--modal-bg);border-radius:18px 18px 0 0;width:100%;max-width:420px;padding:20px 16px 30px;animation:slideUp 0.3s ease}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 .modal-title{font-size:17px;font-weight:700;margin-bottom:16px;text-align:center}
-.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:var(--text);padding:12px 24px;border-radius:10px;font-size:14px;z-index:300;opacity:0;transition:opacity 0.3s;pointer-events:none;border:1px solid rgba(255,255,255,0.1);max-width:90%;text-align:center}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--modal-bg);color:var(--text);padding:12px 24px;border-radius:10px;font-size:14px;z-index:300;opacity:0;transition:opacity 0.3s;pointer-events:none;border:1px solid rgba(255,255,255,0.1);max-width:90%;text-align:center}
 .toast.show{opacity:1}
-.search-result{background:var(--card);border-radius:var(--radius);padding:14px;margin-top:8px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;border:1px solid rgba(255,255,255,0.05)}
+.search-result{background:var(--card);border-radius:var(--radius);padding:14px;margin-top:8px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;border:1px solid var(--border)}
 .search-result:active{background:var(--card-hover)}
 .alert-log{font-size:12px;color:var(--text2);max-height:220px;overflow-y:auto}
 .alert-log-item{padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;justify-content:space-between}
@@ -161,7 +178,10 @@ body{
 <div id="app">
   <div class="header">
     <div class="header-title"><span class="icon">🧊</span>盘策</div>
-    <div class="header-status" id="statusBar"><span class="dot"></span>加载中</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span onclick="App.toggleTheme()" id="themeBtn" style="font-size:18px;cursor:pointer">🌙</span>
+      <div class="header-status" id="statusBar"><span class="dot"></span>加载中</div>
+    </div>
   </div>
 
   <!-- Tab 0: 大盘冰点指数 -->
@@ -513,7 +533,7 @@ function drawGauge(score, canvasId) {
 
   ctx.beginPath();
   ctx.arc(cx, cy, r, Math.PI, 0);
-  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+  ctx.strokeStyle = 'var(--border)';
   ctx.lineWidth = 14;
   ctx.stroke();
 
@@ -1352,8 +1372,20 @@ async function refreshStockNames() {
   if (needsSave2) saveAlertStocks(alertStocks);
 }
 
+// ==================== 主题切换 ====================
+function getTheme() { return localStorage.getItem('pance_theme') || 'dark'; }
+function setTheme(t) { localStorage.setItem('pance_theme', t); applyTheme(t); }
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  $('#themeBtn').textContent = t === 'light' ? '☀️' : '🌙';
+}
+function toggleTheme() {
+  setTheme(getTheme() === 'dark' ? 'light' : 'dark');
+}
+
 // ==================== 初始化 ====================
 function init() {
+  applyTheme(getTheme());
   loadAccount();
   drawAssetChart();
 
@@ -1388,7 +1420,7 @@ const App = {
   removeAlertStock, removePosStock, toggleAlertType,
   updateAccount, updateSentiment, updatePositionData,
   updateShares, updateCost,
-  requestNotify
+  requestNotify, toggleTheme
 };
 
 document.addEventListener('DOMContentLoaded', init);
