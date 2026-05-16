@@ -134,7 +134,7 @@ body{
 .toast.show{opacity:1}
 .search-result{background:var(--card);border-radius:var(--radius);padding:14px;margin-top:8px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;border:1px solid rgba(255,255,255,0.05)}
 .search-result:active{background:var(--card-hover)}
-.alert-log{font-size:12px;color:var(--text2);max-height:200px;overflow-y:auto}
+.alert-log{font-size:12px;color:var(--text2);max-height:220px;overflow-y:auto}
 .alert-log-item{padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;justify-content:space-between}
 .empty-state{text-align:center;padding:40px 20px;color:var(--text2)}
 .empty-state .empty-icon{font-size:48px;margin-bottom:12px}
@@ -202,11 +202,11 @@ body{
     </div>
     <div class="card">
       <div class="card-header">📈 上证冰点趋势（近3年 · 月度）</div>
-      <canvas id="shChart" width="400" height="200" style="width:100%;height:200px"></canvas>
+      <canvas id="shChart" width="400" height="200" style="width:100%;height:220px"></canvas>
     </div>
     <div class="card">
       <div class="card-header">📈 创业板冰点趋势（近3年 · 月度）</div>
-      <canvas id="cyChart" width="400" height="200" style="width:100%;height:200px"></canvas>
+      <canvas id="cyChart" width="400" height="200" style="width:100%;height:220px"></canvas>
     </div>
     <div class="card">
       <div class="card-header">📋 今日操作建议</div>
@@ -312,7 +312,7 @@ body{
     </div>
     <div class="card">
       <div class="card-header">📈 总资产走势</div>
-      <canvas id="assetChart" width="400" height="200" style="width:100%;height:200px"></canvas>
+      <canvas id="assetChart" width="400" height="200" style="width:100%;height:220px"></canvas>
     </div>
     <div class="card">
       <div class="card-header">📊 仓位安全标准</div>
@@ -586,14 +586,14 @@ function drawLineChart(canvasId, data, baseLine) {
   if (!canvas) return;
   const w = canvas.clientWidth;
   if (w < 10) return;
-  const h = 200;
+  const h = 220;
   const ctx = canvas.getContext('2d');
   const dpr = window.devicePixelRatio || 1;
   canvas.width = w * dpr;
   canvas.height = h * dpr;
   ctx.scale(dpr, dpr);
 
-  const pad = { top: 20, right: 12, bottom: 30, left: 38 };
+  const pad = { top: 20, right: 16, bottom: 36, left: 40 };
   const pw = w - pad.left - pad.right;
   const ph = h - pad.top - pad.bottom;
 
@@ -664,17 +664,25 @@ function drawLineChart(canvasId, data, baseLine) {
     ctx.fillText(Math.round(v), pad.left - 6, yScale(v) + 3);
   }
 
-  // X轴日期（显示部分）
+  // X轴日期（每3个月标一个）
   ctx.textAlign = 'center';
-  const showCount = Math.min(6, data.length);
-  const step = Math.floor((data.length - 1) / (showCount - 1));
-  for (let i = 0; i < data.length; i += step) {
+  ctx.fillStyle = '#8899aa';
+  ctx.font = '9px sans-serif';
+  for (let i = 0; i < data.length; i++) {
+    // 每月都画短刻度线
+    const x = xScale(i);
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.beginPath(); ctx.moveTo(x, pad.top + ph); ctx.lineTo(x, pad.top + ph + 4); ctx.stroke();
+  }
+  // 每3个月标文字
+  for (let i = 0; i < data.length; i += 3) {
     const d = data[i];
     ctx.fillText(d.date || '', xScale(i), h - pad.bottom + 14);
   }
-  // 最后一个一定显示
+  // 首尾必标
+  ctx.fillText(data[0].date || '', xScale(0), h - pad.bottom + 14);
   const last = data[data.length - 1];
-  ctx.fillText(last.date || '', xScale(data.length - 1), h - pad.bottom + 14);
+  if (data.length % 3 !== 1) ctx.fillText(last.date || '', xScale(data.length - 1), h - pad.bottom + 14);
 }
 
 // ==================== 声音提醒 ====================
