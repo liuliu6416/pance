@@ -154,9 +154,47 @@ body{
 .wechat-setup .step{font-size:12px;color:var(--text2);margin:4px 0;padding-left:16px;position:relative}
 .wechat-setup .step::before{content:'●';position:absolute;left:0;color:var(--gold);font-size:8px;top:2px}
 .link{color:var(--gold);text-decoration:underline;cursor:pointer}
+/* 微信登录覆盖层 */
+.login-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px}
+.login-logo{width:100px;height:100px;border-radius:24px;margin-bottom:20px;box-shadow:0 8px 32px rgba(240,192,64,0.2)}
+.login-title{font-size:24px;font-weight:800;margin-bottom:6px;letter-spacing:1px}
+.login-subtitle{font-size:13px;color:var(--text2);margin-bottom:30px}
+.login-card{background:var(--card);border-radius:16px;padding:24px;width:100%;max-width:320px;text-align:center;border:1px solid rgba(255,255,255,0.08)}
+.login-card .step-num{display:inline-block;width:24px;height:24px;border-radius:12px;background:var(--gold);color:#1a1a2e;font-size:13px;font-weight:700;line-height:24px;margin-bottom:8px}
+.login-card .step-title{font-size:15px;font-weight:600;margin-bottom:8px}
+.login-card .step-desc{font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:14px}
+.login-card .wechat-btn{display:inline-block;background:#2ed573;color:#fff;padding:12px 28px;border-radius:10px;font-size:15px;font-weight:700;text-decoration:none;cursor:pointer;letter-spacing:1px}
+.login-card .wechat-btn:active{opacity:0.8}
+.login-skip{color:var(--text2);font-size:12px;margin-top:20px;cursor:pointer;text-decoration:underline}
+.login-status{font-size:12px;margin-top:12px;color:var(--down)}
 </style>
 </head>
 <body>
+
+<!-- 微信登录覆盖层 -->
+<div class="login-overlay" id="loginOverlay">
+  <img src="icon-192.png" class="login-logo" alt="盘策" onerror="this.style.display='none'">
+  <div class="login-title">🧊 盘策</div>
+  <div class="login-subtitle">专业炒股助手 · 微信一键登录</div>
+  <div class="login-card">
+    <div class="step-num">1</div>
+    <div class="step-title">微信扫码绑定</div>
+    <div class="step-desc">
+      点击下方按钮，微信扫码登录<br>即可绑定预警推送通知
+    </div>
+    <a class="wechat-btn" href="https://sct.ftqq.com/login" target="_blank" onclick="App.onWechatBindStart()">🔔 微信扫码绑定</a>
+    <div style="font-size:11px;color:var(--text2);margin-top:10px">扫码后复制页面上的 <b>SendKey</b></div>
+  </div>
+  <div style="margin-top:14px;width:100%;max-width:320px">
+    <div class="input-row">
+      <input class="input" id="loginSendKey" placeholder="粘贴 SendKey 到此处" style="font-size:13px">
+      <button class="btn" onclick="App.completeWechatLogin()">完成绑定</button>
+    </div>
+    <div id="loginStatus" style="font-size:11px;color:var(--text2);text-align:center"></div>
+  </div>
+  <span class="login-skip" onclick="App.skipLogin()">暂不绑定，直接使用 →</span>
+</div>
+
 <div id="app">
   <div class="header">
     <div class="header-title"><span class="icon">🧊</span>盘策</div>
@@ -626,6 +664,7 @@ async function monitorAlertStocks() {
     stock._price = data.price;
     stock._changePct = data.changePct;
     stock._prevClose = data.prevClose;
+    stock._name = data.name || stock.name;
     stock.limitUp = data.limitUp;
     stock.limitDown = data.limitDown;
 
@@ -658,7 +697,7 @@ function renderAlertList() {
     return `
     <div class="stock-item" style="flex-wrap:wrap">
       <div class="stock-info" style="flex:1;min-width:60%">
-        <div class="stock-name">${s.name} <span class="stock-code">${s.code}</span></div>
+        <div class="stock-name">${s._name || s.name} <span class="stock-code">${s.code}</span></div>
         <div class="toggle-row" style="margin-top:6px">
           ${types.map(t => {
             const on = s.alertTypes && s.alertTypes.includes(t);
@@ -967,15 +1006,91 @@ function switchTab(idx) {
   if (idx === 3) updateAccount();
 }
 
-// ==================== 初始化 ====================
-function init() {
+// ==================== 微信登录 ====================
+function checkLoginState() {
   const savedKey = Store.get(STORAGE_KEY.sendKey);
   if (savedKey) {
+    // 已绑定，直接跳过登录
+    $('#loginOverlay').style.display = 'none';
     $('#sendKeyInput').value = savedKey;
-    $('#wechatStatus').innerHTML = '<span style="color:var(--down)">✅ 已绑定，预警将推送到微信</span>';
+    $('#wechatStatus').innerHTML = '<span style="color:var(--down)">✅ 已绑定微信，预警将推送到微信</span>';
+    return true;
   }
+  return false;
+}
+
+function onWechatBindStart() {
+  $('#loginStatus').textContent = '扫码后复制 SendKey，粘贴到下方即可';
+}
+
+function completeWechatLogin() {
+  const key = $('#loginSendKey').value.trim();
+  if (!key) {
+    $('#loginStatus').innerHTML = '<span style="color:var(--danger)">请先粘贴 SendKey</span>';
+    return;
+  }
+  Store.set(STORAGE_KEY.sendKey, key);
+  $('#sendKeyInput').value = key;
+  $('#wechatStatus').innerHTML = '<span style="color:var(--down)">✅ 已绑定微信，预警将推送到微信</span>';
+  $('#loginStatus').innerHTML = '<span style="color:var(--down)">✅ 绑定成功！正在进入...</span>';
+  toast('微信绑定成功！预警将推送到你的微信');
+  setTimeout(() => {
+    $('#loginOverlay').style.display = 'none';
+  }, 800);
+}
+
+function skipLogin() {
+  $('#loginOverlay').style.display = 'none';
+}
+
+// 修复没有名称的持仓股票
+async function repairStockNames() {
+  const posStocks = getPosStocks();
+  let needsSave = false;
+  for (const s of posStocks) {
+    if (!s.name || s.name === '--') {
+      const json = await fetchAPI(API.stock(s.code));
+      if (json && json.data) {
+        const data = parseStockData(json);
+        if (data && data.name && data.name !== '--') {
+          s.name = data.name;
+          needsSave = true;
+        }
+      }
+    }
+  }
+  if (needsSave) savePosStocks(posStocks);
+
+  const alertStocks = getAlertStocks();
+  let needsSave2 = false;
+  for (const s of alertStocks) {
+    if (!s.name || s.name === '--') {
+      const json = await fetchAPI(API.stock(s.code));
+      if (json && json.data) {
+        const data = parseStockData(json);
+        if (data && data.name && data.name !== '--') {
+          s.name = data.name;
+          needsSave2 = true;
+        }
+      }
+    }
+  }
+  if (needsSave2) saveAlertStocks(alertStocks);
+}
+
+// ==================== 初始化 ====================
+function init() {
+  // 检查微信登录
+  const loggedIn = checkLoginState();
 
   loadAccount();
+
+  // 修复旧数据中没有名称的股票
+  repairStockNames().then(() => {
+    renderAlertList();
+    renderPosList();
+  });
+
   renderAlertLog();
   renderAlertList();
   const alertStocks = getAlertStocks();
@@ -996,7 +1111,8 @@ function init() {
 const App = {
   switchTab, searchStock, addAlertStock, addPositionStock,
   removeAlertStock, removePosStock, toggleAlertType, saveSendKey,
-  updateAccount, updateSentiment, updatePositionData, updateShares
+  updateAccount, updateSentiment, updatePositionData, updateShares,
+  onWechatBindStart, completeWechatLogin, skipLogin
 };
 
 document.addEventListener('DOMContentLoaded', init);
