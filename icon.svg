@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1a1a3e"/>
+      <stop offset="100%" stop-color="#0f0f1a"/>
+    </linearGradient>
+    <linearGradient id="ice" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f0c040"/>
+      <stop offset="100%" stop-color="#ff6b6b"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="100" fill="url(#bg)"/>
+  <!-- iceberg top (peak) -->
+  <polygon points="256,80 140,320 372,320" fill="url(#ice)" opacity="0.9"/>
+  <!-- iceberg bottom (underwater) -->
+  <polygon points="172,320 100,460 412,460 340,320" fill="url(#ice)" opacity="0.35"/>
+  <!-- water line -->
+  <line x1="80" y1="320" x2="432" y2="320" stroke="#f0c040" stroke-width="3" opacity="0.6"/>
+  <!-- upward arrow -->
+  <polygon points="256,140 220,210 244,210 244,290 268,290 268,210 292,210" fill="#fff" opacity="0.9"/>
+</svg>

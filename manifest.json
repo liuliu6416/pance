@@ -1,0 +1,18 @@
+{
+  "name": "盘策 - 炒股助手",
+  "short_name": "盘策",
+  "description": "专业股票分析工具：市场情绪风向标、个股异动预警、持仓强弱评级、仓位安全等级",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f0f1a",
+  "theme_color": "#0f0f1a",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
