@@ -167,29 +167,33 @@ body{
   <!-- Tab 0: 大盘冰点指数 -->
   <div class="tab-content active" id="tab-sentiment">
     <div class="card" style="text-align:center">
-      <div class="gauge-wrap">
-        <canvas class="gauge-canvas" id="gaugeCanvas" width="300" height="180"></canvas>
-      </div>
-      <div class="score-display">
-        <div class="score-number" id="scoreNum" style="color:var(--gold)">--</div>
-        <div class="score-label" id="scoreLabel">加载中...</div>
-      </div>
-      <div class="index-info">
-        上证指数 <strong id="shIndex">----</strong>
-        <span id="shChange" style="font-size:14px">--</span>
-      </div>
-    </div>
-    <div class="card" style="text-align:center">
-      <div class="gauge-wrap">
-        <canvas class="gauge-canvas" id="gaugeCanvas2" width="300" height="180"></canvas>
-      </div>
-      <div class="score-display">
-        <div class="score-number" id="scoreNum2" style="color:var(--gold)">--</div>
-        <div class="score-label" id="scoreLabel2">加载中...</div>
-      </div>
-      <div class="index-info">
-        创业板指 <strong id="cyIndex">----</strong>
-        <span id="cyChange" style="font-size:14px">--</span>
+      <div style="display:flex;gap:6px">
+        <div style="flex:1;min-width:0">
+          <div class="gauge-wrap">
+            <canvas class="gauge-canvas" id="gaugeCanvas" width="150" height="170"></canvas>
+          </div>
+          <div class="score-display">
+            <div class="score-number" id="scoreNum" style="font-size:36px;color:var(--gold)">--</div>
+            <div class="score-label" id="scoreLabel" style="font-size:10px">加载中</div>
+          </div>
+          <div class="index-info" style="font-size:11px">
+            上证 <strong id="shIndex" style="font-size:14px">----</strong>
+            <span id="shChange" style="font-size:11px">--</span>
+          </div>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div class="gauge-wrap">
+            <canvas class="gauge-canvas" id="gaugeCanvas2" width="150" height="170"></canvas>
+          </div>
+          <div class="score-display">
+            <div class="score-number" id="scoreNum2" style="font-size:36px;color:var(--gold)">--</div>
+            <div class="score-label" id="scoreLabel2" style="font-size:10px">加载中</div>
+          </div>
+          <div class="index-info" style="font-size:11px">
+            创业板 <strong id="cyIndex" style="font-size:14px">----</strong>
+            <span id="cyChange" style="font-size:11px">--</span>
+          </div>
+        </div>
       </div>
     </div>
     <div class="card">
@@ -270,12 +274,12 @@ body{
       <div class="card-header">💰 资产概览</div>
       <div class="overview-grid">
         <div class="overview-item">
-          <div class="ov-label">💰 现金余额</div>
-          <div class="ov-value" style="color:var(--blue)" id="cashVal">--</div>
-        </div>
-        <div class="overview-item">
           <div class="ov-label">🏦 总资产</div>
           <div class="ov-value" style="color:var(--text)" id="totalAssetVal">--</div>
+        </div>
+        <div class="overview-item">
+          <div class="ov-label">💰 现金余额</div>
+          <div class="ov-value" style="color:var(--blue)" id="cashVal">--</div>
         </div>
         <div class="overview-item">
           <div class="ov-label">📈 持仓市值</div>
@@ -329,9 +333,15 @@ body{
 const API = {
   index: 'https://push2.eastmoney.com/api/qt/stock/get?secid=1.000001&fields=f43,f44,f45,f46,f47,f48,f50,f57,f58,f60,f169,f170,f171',
   cyIndex: 'https://push2.eastmoney.com/api/qt/stock/get?secid=0.399006&fields=f43,f44,f45,f46,f47,f48,f50,f57,f58,f60,f169,f170,f171',
+  // 新浪 API 获取股票名称+价格
+  sina: (code) => {
+    const prefix = /^[0-2]/.test(code) ? 'sz' : 'sh';
+    return `https://hq.sinajs.cn/list=${prefix}${code}`;
+  },
+  // 东方财富 API 获取K线和周月数据
   stock: (code) => {
     const market = /^[0-2]/.test(code) ? '0' : '1';
-    return `https://push2.eastmoney.com/api/qt/stock/get?secid=${market}.${code}&fields=f43,f44,f45,f46,f47,f48,f50,f51,f52,f57,f58,f60,f169,f170,f171`;
+    return `https://push2.eastmoney.com/api/qt/stock/get?secid=${market}.${code}&fields=f43,f44,f45,f46,f47,f48,f50,f51,f52,f58,f60,f169,f170,f171`;
   },
   kline: (code, klt, lmt) => {
     const market = /^[0-2]/.test(code) ? '0' : '1';
@@ -384,12 +394,38 @@ function parseIndexData(json) {
   };
 }
 
+// 新浪返回GBK编码，需用 TextDecoder 或直接取
+async function fetchSinaStock(code) {
+  try {
+    const prefix = /^[0-2]/.test(code) ? 'sz' : 'sh';
+    const resp = await fetch(`https://hq.sinajs.cn/list=${prefix}${code}`, {
+      headers: { 'Referer': 'https://finance.sina.com.cn' }
+    });
+    const buffer = await resp.arrayBuffer();
+    // 新浪用GBK编码
+    const decoder = new TextDecoder('gbk');
+    const text = decoder.decode(buffer);
+    // 格式: var hq_str_sh600519="名称,今开,昨收,现价,最高,最低,..."
+    const match = text.match(/"([^"]+)"/);
+    if (!match) return null;
+    const parts = match[1].split(',');
+    return {
+      name: parts[0] || '--',
+      open: parseFloat(parts[1]) || 0,
+      prevClose: parseFloat(parts[2]) || 0,
+      price: parseFloat(parts[3]) || 0,
+      high: parseFloat(parts[4]) || 0,
+      low: parseFloat(parts[5]) || 0
+    };
+  } catch(e) { return null; }
+}
+
 function parseStockData(json) {
   if (!json || !json.data) return null;
   const d = json.data;
   return {
-    name: d.f57 || '--', price: d.f43 / 100, open: d.f46 / 100,
-    high: d.f44 / 100, low: d.f45 / 100, prevClose: d.f58 / 100,
+    price: d.f43 / 100, open: d.f46 / 100,
+    high: d.f44 / 100, low: d.f45 / 100, prevClose: d.f60 / 100,
     change: d.f169 / 100, changePct: d.f170 / 100,
     limitUp: d.f51 ? d.f51 / 100 : null, limitDown: d.f52 ? d.f52 / 100 : null
   };
@@ -675,18 +711,19 @@ async function monitorAlertStocks() {
   const stocks = getAlertStocks();
   for (const stock of stocks) {
     if (!stock.monitoring || !stock.alertTypes || stock.alertTypes.length === 0) continue;
-    const json = await fetchAPI(API.stock(stock.code));
-    if (!json || !json.data) continue;
-    const data = parseStockData(json);
-    if (!data) continue;
+    // 从新浪获取名称+价格
+    const sinaData = await fetchSinaStock(stock.code);
+    if (!sinaData) continue;
+    const emJson = await fetchAPI(API.stock(stock.code));
+    const emData = emJson ? parseStockData(emJson) : null;
 
-    updatePriceSnapshot(stock.code, data.price);
-    stock._price = data.price;
-    stock._changePct = data.changePct;
-    stock._prevClose = data.prevClose;
-    stock._name = data.name || stock.name;
-    stock.limitUp = data.limitUp;
-    stock.limitDown = data.limitDown;
+    updatePriceSnapshot(stock.code, sinaData.price);
+    stock._price = sinaData.price;
+    stock._changePct = emData ? emData.changePct : ((sinaData.price - sinaData.prevClose) / sinaData.prevClose * 100);
+    stock._prevClose = sinaData.prevClose;
+    stock._name = sinaData.name || stock.name;
+    stock.limitUp = emData ? emData.limitUp : null;
+    stock.limitDown = emData ? emData.limitDown : null;
 
     const triggers = checkAlerts(stock, data.price);
     for (const t of triggers) {
@@ -753,13 +790,16 @@ async function updatePositionData() {
   if (stocks.length === 0) { renderPosList(); return; }
 
   for (const stock of stocks) {
-    const json = await fetchAPI(API.stock(stock.code));
-    if (json && json.data) {
-      const data = parseStockData(json);
-      stock._price = data.price;
-      stock._changePct = data.changePct;
-      stock._name = data.name || stock.name;
-      stock._prevClose = data.prevClose;
+    const sinaData = await fetchSinaStock(stock.code);
+    if (sinaData) {
+      stock._price = sinaData.price;
+      stock._prevClose = sinaData.prevClose;
+      stock._name = sinaData.name || stock.name;
+    }
+    const emJson = await fetchAPI(API.stock(stock.code));
+    if (emJson && emJson.data) {
+      const emData = parseStockData(emJson);
+      stock._changePct = emData.changePct;
     }
 
     const weekJson = await fetchAPI(API.kline(stock.code, 102, 2));
@@ -911,18 +951,27 @@ async function searchStock(from) {
   if (!code || code.length < 1) { toast('请输入股票代码'); return; }
 
   toast('搜索中...');
-  const json = await fetchAPI(API.stock(code));
-  if (!json || !json.data) {
+  // 从新浪拿名称和价格
+  const sinaData = await fetchSinaStock(code);
+  if (!sinaData || !sinaData.name || sinaData.name === '--') {
     resultEl.innerHTML = '<div class="search-result" style="justify-content:center;color:var(--text2)">未找到该股票，请检查代码（沪市6开头，深市0/2/3开头）</div>';
     return;
   }
-  const data = parseStockData(json);
-  if (!data || !data.name) {
-    resultEl.innerHTML = '<div class="search-result" style="justify-content:center;color:var(--text2)">未找到该股票，请检查代码</div>';
-    return;
-  }
+  // 从东方财富拿涨跌幅和限制价
+  const emJson = await fetchAPI(API.stock(code));
+  const emData = emJson ? parseStockData(emJson) : null;
 
-  data.code = code;
+  const data = {
+    code,
+    name: sinaData.name,
+    price: sinaData.price,
+    prevClose: sinaData.prevClose,
+    change: emData ? emData.change : (sinaData.price - sinaData.prevClose),
+    changePct: emData ? emData.changePct : ((sinaData.price - sinaData.prevClose) / sinaData.prevClose * 100),
+    limitUp: emData ? emData.limitUp : null,
+    limitDown: emData ? emData.limitDown : null
+  };
+
   resultEl.innerHTML = `
     <div class="search-result">
       <div>
@@ -1018,13 +1067,10 @@ async function repairStockNames() {
   let needsSave = false;
   for (const s of posStocks) {
     if (!s.name || s.name === '--') {
-      const json = await fetchAPI(API.stock(s.code));
-      if (json && json.data) {
-        const data = parseStockData(json);
-        if (data && data.name && data.name !== '--') {
-          s.name = data.name;
-          needsSave = true;
-        }
+      const sinaData = await fetchSinaStock(s.code);
+      if (sinaData && sinaData.name && sinaData.name !== '--') {
+        s.name = sinaData.name;
+        needsSave = true;
       }
     }
   }
@@ -1034,13 +1080,10 @@ async function repairStockNames() {
   let needsSave2 = false;
   for (const s of alertStocks) {
     if (!s.name || s.name === '--') {
-      const json = await fetchAPI(API.stock(s.code));
-      if (json && json.data) {
-        const data = parseStockData(json);
-        if (data && data.name && data.name !== '--') {
-          s.name = data.name;
-          needsSave2 = true;
-        }
+      const sinaData = await fetchSinaStock(s.code);
+      if (sinaData && sinaData.name && sinaData.name !== '--') {
+        s.name = sinaData.name;
+        needsSave2 = true;
       }
     }
   }
