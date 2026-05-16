@@ -178,18 +178,33 @@ body{
         上证指数 <strong id="shIndex">----</strong>
         <span id="shChange" style="font-size:14px">--</span>
       </div>
-      <div style="font-size:11px;color:var(--text2);margin-top:6px" id="updateTime"></div>
+    </div>
+    <div class="card" style="text-align:center">
+      <div class="gauge-wrap">
+        <canvas class="gauge-canvas" id="gaugeCanvas2" width="300" height="180"></canvas>
+      </div>
+      <div class="score-display">
+        <div class="score-number" id="scoreNum2" style="color:var(--gold)">--</div>
+        <div class="score-label" id="scoreLabel2">加载中...</div>
+      </div>
+      <div class="index-info">
+        创业板指 <strong id="cyIndex">----</strong>
+        <span id="cyChange" style="font-size:14px">--</span>
+      </div>
     </div>
     <div class="card">
       <div class="card-header">📋 今日操作建议</div>
-      <ul class="advice-list" id="adviceList"></ul>
+      <div style="font-size:14px;line-height:1.8;text-align:center;padding:8px 0" id="adviceText">
+        炒股和呼吸一样简单，只要记住一句话就够了：低买高卖。
+      </div>
     </div>
     <div class="card">
       <div class="card-header">📊 冰点指数说明</div>
       <div style="font-size:12px;color:var(--text2);line-height:1.8">
-        基准：上证 3000点 = 60分 ｜ ±100点 = ±1分<br>
-        0-30 极度悲观 · 30-45 偏悲观 · 45-55 中性 · 55-70 偏乐观 · 70-100 极度乐观
+        上证：3000点 = 60分 ｜ 创业板：2500点 = 60分<br>
+        ±100点 = ±1分 ｜ 0-30极度悲观 · 30-45偏悲观 · 45-55中性 · 55-70偏乐观 · 70-100极度乐观
       </div>
+      <div style="font-size:11px;color:var(--text2);margin-top:6px" id="updateTime"></div>
     </div>
   </div>
 
@@ -259,12 +274,12 @@ body{
           <div class="ov-value" style="color:var(--blue)" id="cashVal">--</div>
         </div>
         <div class="overview-item">
-          <div class="ov-label">📈 持仓市值</div>
-          <div class="ov-value" style="color:var(--gold)" id="holdingVal">--</div>
-        </div>
-        <div class="overview-item">
           <div class="ov-label">🏦 总资产</div>
           <div class="ov-value" style="color:var(--text)" id="totalAssetVal">--</div>
+        </div>
+        <div class="overview-item">
+          <div class="ov-label">📈 持仓市值</div>
+          <div class="ov-value" style="color:var(--gold)" id="holdingVal">--</div>
         </div>
         <div class="overview-item">
           <div class="ov-label">📊 仓位比例</div>
@@ -313,6 +328,7 @@ body{
 // ==================== 配置 ====================
 const API = {
   index: 'https://push2.eastmoney.com/api/qt/stock/get?secid=1.000001&fields=f43,f44,f45,f46,f47,f48,f50,f57,f58,f60,f169,f170,f171',
+  cyIndex: 'https://push2.eastmoney.com/api/qt/stock/get?secid=0.399006&fields=f43,f44,f45,f46,f47,f48,f50,f57,f58,f60,f169,f170,f171',
   stock: (code) => {
     const market = /^[0-2]/.test(code) ? '0' : '1';
     return `https://push2.eastmoney.com/api/qt/stock/get?secid=${market}.${code}&fields=f43,f44,f45,f46,f47,f48,f50,f51,f52,f57,f58,f60,f169,f170,f171`;
@@ -428,8 +444,8 @@ function sendNotify(title, body) {
 }
 
 // ==================== Canvas 仪表盘 ====================
-function drawGauge(score) {
-  const canvas = $('#gaugeCanvas');
+function drawGauge(score, canvasId) {
+  const canvas = $(canvasId || '#gaugeCanvas');
   if (!canvas) return;
   const w = canvas.clientWidth;
   if (w < 10) return;
@@ -547,6 +563,7 @@ function getSafetyLevel(pct) {
 let indexData = null;
 
 async function updateSentiment() {
+  // 上证指数
   const json = await fetchAPI(API.index);
   if (json && json.data) {
     indexData = parseIndexData(json);
@@ -564,13 +581,28 @@ async function updateSentiment() {
     $('#shChange').innerHTML = `<span style="color:${changeColor}">${fmtPct(indexData.changePct)}</span>`;
     $('#updateTime').textContent = '更新于 ' + new Date().toLocaleTimeString();
     $('#statusBar').innerHTML = '<span class="dot" style="background:var(--down)"></span>已连接';
-
-    const advices = getAdvices(clamped, indexData.changePct);
-    $('#adviceList').innerHTML = advices.map(a => `<li>${a}</li>`).join('');
-
-    drawGauge(clamped);
+    drawGauge(clamped, '#gaugeCanvas');
   } else {
     $('#statusBar').innerHTML = '<span class="dot" style="background:var(--orange)"></span>数据异常';
+  }
+
+  // 创业板指数
+  const cyJson = await fetchAPI(API.cyIndex);
+  if (cyJson && cyJson.data) {
+    const cyData = parseIndexData(cyJson);
+    const cyScore = 60 + (cyData.price - 2500) / 100;
+    const cyClamped = Math.round(Math.max(0, Math.min(100, cyScore)) * 10) / 10;
+    const cyLabel = getSentimentLabel(cyClamped);
+    const cyColor = cyData.changePct >= 0 ? 'var(--up)' : 'var(--down)';
+
+    $('#scoreNum2').textContent = cyClamped;
+    $('#scoreNum2').style.color = cyLabel.color;
+    $('#scoreLabel2').textContent = cyLabel.text;
+    $('#scoreLabel2').style.background = cyLabel.color + '22';
+    $('#scoreLabel2').style.color = cyLabel.color;
+    $('#cyIndex').textContent = fmtMoney(cyData.price);
+    $('#cyChange').innerHTML = `<span style="color:${cyColor}">${fmtPct(cyData.changePct)}</span>`;
+    drawGauge(cyClamped, '#gaugeCanvas2');
   }
 }
 
@@ -686,7 +718,7 @@ function renderAlertList() {
     return `
     <div class="stock-item" style="flex-wrap:wrap">
       <div class="stock-info" style="flex:1;min-width:60%">
-        <div class="stock-name">${s._name || s.name} <span class="stock-code">${s.code}</span></div>
+        <div class="stock-name">${s._name || s.name} · <span class="stock-code">${s.code}</span></div>
         <div class="toggle-row" style="margin-top:6px">
           ${types.map(t => {
             const on = s.alertTypes && s.alertTypes.includes(t);
@@ -755,12 +787,8 @@ async function updatePositionData() {
     stock._marketValue = stock._price * stock._shares;
   }
 
-  // 按评级排序
-  stocks.sort((a, b) => {
-    const ra = getRating(a._weekChg, a._monthChg);
-    const rb = getRating(b._weekChg, b._monthChg);
-    return 'ABCDE'.indexOf(ra.grade) - 'ABCDE'.indexOf(rb.grade);
-  });
+  // 按持股数量降序排列
+  stocks.sort((a, b) => (b._shares || 0) - (a._shares || 0));
   savePosStocks(stocks);
   renderPosList();
   App.updateAccount(); // 同步更新仓位页
@@ -801,7 +829,7 @@ function renderPosList() {
     <div class="stock-item" style="flex-direction:column;align-items:stretch">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
-          <div class="stock-name">${s._name || s.name} <span class="stock-code">${s.code}</span></div>
+          <div class="stock-name">${s._name || s.name} · <span class="stock-code">${s.code}</span></div>
           <span class="badge ${rating.cls}">${rating.grade}·${rating.label}</span>
         </div>
         <div style="text-align:right">
@@ -898,7 +926,7 @@ async function searchStock(from) {
   resultEl.innerHTML = `
     <div class="search-result">
       <div>
-        <div style="font-weight:600;margin-bottom:2px">${data.name} <span style="font-size:11px;color:var(--text2)">${code}</span></div>
+        <div style="font-weight:600;margin-bottom:2px">${data.name} · <span style="color:var(--gold)">${code}</span></div>
         <div style="font-size:11px;color:var(--text2)">现价 ${fmtMoney(data.price)} · 涨跌 ${fmtPct(data.changePct)}</div>
         ${from === 'position' ? '<div style="font-size:11px;color:var(--gold);margin-top:2px">添加后可输入持股数量</div>' : ''}
       </div>
