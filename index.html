@@ -1081,7 +1081,7 @@ function renderPosList() {
           onchange="App.updateShares(${i}, this.value)" style="font-size:11px;padding:5px 6px;width:65px;flex:0 0 65px">
       </div>
       <div class="pos-row">
-        <span style="font-size:10px;color:var(--text2)">市值 ¥${fmtMoney(mv)}</span>
+        <span style="font-size:14px;font-weight:700;color:var(--text)">市值 ¥${fmtMoney(mv)}</span>
         <span style="font-size:10px;color:var(--gold)">占比 ${weight}%</span>
         ${cost > 0 ? `<span style="font-size:10px" class="${profitCls}">盈亏 ${profitSign}¥${fmtMoney(Math.abs(profitAmt))} (${profitSign}${profitPct.toFixed(1)}%)</span>` : '<span style="font-size:10px;color:var(--text2)">输入成本算盈亏</span>'}
         <button class="btn btn-sm btn-danger" onclick="App.removePosStock(${i})">删</button>
