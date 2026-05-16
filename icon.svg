@@ -2,20 +2,41 @@
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#1a1a3e"/>
-      <stop offset="100%" stop-color="#0f0f1a"/>
+      <stop offset="100%" stop-color="#0b0b20"/>
     </linearGradient>
-    <linearGradient id="ice" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#f0c040"/>
-      <stop offset="100%" stop-color="#ff6b6b"/>
+    <linearGradient id="iceTop" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="40%" stop-color="#f0c040"/>
+    </linearGradient>
+    <linearGradient id="iceBot" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#4a90d9" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#1a3a5c" stop-opacity="0.15"/>
     </linearGradient>
   </defs>
-  <rect width="512" height="512" rx="100" fill="url(#bg)"/>
-  <!-- iceberg top (peak) -->
-  <polygon points="256,80 140,320 372,320" fill="url(#ice)" opacity="0.9"/>
-  <!-- iceberg bottom (underwater) -->
-  <polygon points="172,320 100,460 412,460 340,320" fill="url(#ice)" opacity="0.35"/>
-  <!-- water line -->
-  <line x1="80" y1="320" x2="432" y2="320" stroke="#f0c040" stroke-width="3" opacity="0.6"/>
-  <!-- upward arrow -->
-  <polygon points="256,140 220,210 244,210 244,290 268,290 268,210 292,210" fill="#fff" opacity="0.9"/>
+  <rect width="512" height="512" rx="110" fill="url(#bg)"/>
+
+  <!-- Iceberg top (above water) -->
+  <polygon points="256,70 115,310 397,310" fill="url(#iceTop)" opacity="0.95"/>
+
+  <!-- Iceberg reflection lines -->
+  <line x1="185" y1="190" x2="220" y2="310" stroke="#fff" stroke-width="2" opacity="0.3"/>
+  <line x1="256" y1="130" x2="256" y2="310" stroke="#fff" stroke-width="2" opacity="0.2"/>
+  <line x1="327" y1="190" x2="292" y2="310" stroke="#fff" stroke-width="2" opacity="0.3"/>
+
+  <!-- Water line -->
+  <line x1="70" y1="312" x2="442" y2="312" stroke="#f0c040" stroke-width="4" opacity="0.7"/>
+
+  <!-- Water waves -->
+  <path d="M50,330 Q130,315 210,330 Q290,345 370,330 Q410,325 462,335" fill="none" stroke="#4a90d9" stroke-width="3" opacity="0.4"/>
+  <path d="M70,350 Q150,338 230,350 Q310,362 390,350 Q420,346 450,352" fill="none" stroke="#4a90d9" stroke-width="2" opacity="0.25"/>
+
+  <!-- Iceberg bottom (underwater) -->
+  <polygon points="165,315 80,465 432,465 347,315" fill="url(#iceBot)"/>
+
+  <!-- Upward arrow -->
+  <polygon points="256,95 210,180 238,180 238,275 274,275 274,180 302,180" fill="#fff" opacity="0.95"/>
+
+  <!-- Score circle -->
+  <circle cx="256" cy="140" r="55" fill="none" stroke="#f0c040" stroke-width="3" opacity="0.4"/>
+  <text x="256" y="148" text-anchor="middle" font-family="sans-serif" font-size="28" font-weight="800" fill="#f0c040">60</text>
 </svg>

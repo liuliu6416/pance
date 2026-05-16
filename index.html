@@ -50,7 +50,6 @@ body{
   overflow-x:hidden;
   padding-bottom:75px;
 }
-/* 顶部栏 */
 .header{
   padding:14px 18px 10px;
   display:flex;
@@ -62,172 +61,51 @@ body{
   background:var(--bg);
   border-bottom:1px solid rgba(255,255,255,0.06);
 }
-.header-title{
-  font-size:18px;
-  font-weight:700;
-  letter-spacing:0.5px;
-}
+.header-title{font-size:18px;font-weight:700;letter-spacing:0.5px}
 .header-title .icon{font-size:22px;margin-right:4px}
-.header-status{
-  font-size:11px;
-  color:var(--text2);
-  display:flex;
-  align-items:center;
-  gap:5px;
-}
-.header-status .dot{
-  width:7px;height:7px;
-  border-radius:50%;
-  background:var(--down);
-  animation:pulse 2s infinite;
-}
+.header-status{font-size:11px;color:var(--text2);display:flex;align-items:center;gap:5px}
+.header-status .dot{width:7px;height:7px;border-radius:50%;background:var(--down);animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
-/* Tab 内容区 */
 .tab-content{display:none;padding:16px 14px;animation:fadeIn 0.25s ease}
 .tab-content.active{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-/* 底部导航 */
 .bottom-nav{
-  position:fixed;
-  bottom:0;
-  left:50%;
-  transform:translateX(-50%);
-  width:100%;
-  max-width:420px;
-  display:flex;
-  background:rgba(15,15,26,0.95);
-  backdrop-filter:blur(20px);
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:420px;display:flex;
+  background:rgba(15,15,26,0.95);backdrop-filter:blur(20px);
   -webkit-backdrop-filter:blur(20px);
   border-top:1px solid rgba(255,255,255,0.08);
-  padding:6px 0 env(safe-area-inset-bottom,8px);
-  z-index:100;
+  padding:6px 0 env(safe-area-inset-bottom,8px);z-index:100;
 }
-.nav-item{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  padding:6px 0;
-  cursor:pointer;
-  color:var(--text2);
-  transition:color 0.2s;
-  user-select:none;
-  -webkit-user-select:none;
-}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 0;cursor:pointer;color:var(--text2);transition:color 0.2s;user-select:none;-webkit-user-select:none}
 .nav-item.active{color:var(--gold)}
 .nav-item .nav-icon{font-size:22px;line-height:1}
 .nav-item .nav-label{font-size:10px;margin-top:3px;font-weight:500}
-/* 卡片 */
-.card{
-  background:var(--card);
-  border-radius:var(--radius);
-  padding:16px;
-  margin-bottom:12px;
-  border:1px solid rgba(255,255,255,0.05);
-}
-.card-header{
-  font-size:13px;
-  color:var(--text2);
-  margin-bottom:10px;
-  font-weight:500;
-  letter-spacing:0.5px;
-}
-/* 仪表盘 */
-.gauge-wrap{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  padding:8px 0 0;
-}
+.card{background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.05)}
+.card-header{font-size:13px;color:var(--text2);margin-bottom:10px;font-weight:500;letter-spacing:0.5px}
+.gauge-wrap{display:flex;flex-direction:column;align-items:center;padding:8px 0 0}
 .gauge-canvas{width:100%;max-width:300px;height:auto}
 .score-display{text-align:center;margin-top:-10px}
 .score-number{font-size:56px;font-weight:800;letter-spacing:-2px;line-height:1}
-.score-label{
-  display:inline-block;
-  padding:4px 14px;
-  border-radius:20px;
-  font-size:13px;
-  font-weight:600;
-  margin-top:4px;
-  letter-spacing:1px;
-}
-.index-info{
-  text-align:center;
-  margin-top:12px;
-  font-size:14px;
-  color:var(--text2);
-}
+.score-label{display:inline-block;padding:4px 14px;border-radius:20px;font-size:13px;font-weight:600;margin-top:4px;letter-spacing:1px}
+.index-info{text-align:center;margin-top:12px;font-size:14px;color:var(--text2)}
 .index-info strong{color:var(--text);font-size:18px;margin:0 6px}
-/* 输入框 */
-.input-row{
-  display:flex;
-  gap:10px;
-  margin-bottom:12px;
-}
-.input{
-  flex:1;
-  background:rgba(255,255,255,0.06);
-  border:1px solid rgba(255,255,255,0.1);
-  color:var(--text);
-  padding:11px 14px;
-  border-radius:10px;
-  font-size:14px;
-  outline:none;
-  transition:border 0.2s;
-}
+.input-row{display:flex;gap:10px;margin-bottom:12px}
+.input{flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--text);padding:11px 14px;border-radius:10px;font-size:14px;outline:none;transition:border 0.2s}
 .input:focus{border-color:var(--gold)}
 .input::placeholder{color:rgba(255,255,255,0.25)}
-.btn{
-  background:var(--gold);
-  color:#1a1a2e;
-  border:none;
-  padding:11px 18px;
-  border-radius:10px;
-  font-size:14px;
-  font-weight:700;
-  cursor:pointer;
-  white-space:nowrap;
-  transition:opacity 0.2s;
-  letter-spacing:0.5px;
-}
+.input-small{flex:0 0 90px;width:90px}
+.btn{background:var(--gold);color:#1a1a2e;border:none;padding:11px 18px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;transition:opacity 0.2s;letter-spacing:0.5px}
 .btn:active{opacity:0.75}
 .btn-sm{padding:7px 14px;font-size:12px;border-radius:8px}
-.btn-outline{
-  background:transparent;
-  border:1px solid var(--gold);
-  color:var(--gold);
-}
+.btn-outline{background:transparent;border:1px solid var(--gold);color:var(--gold)}
 .btn-danger{background:var(--danger);color:#fff}
-/* 股票列表 */
-.stock-list{list-style:none}
-.stock-item{
-  background:var(--card);
-  border-radius:var(--radius);
-  padding:14px;
-  margin-bottom:10px;
-  border:1px solid rgba(255,255,255,0.05);
-  display:flex;
-  align-items:center;
-  gap:12px;
-  transition:background 0.2s;
-}
+.stock-item{background:var(--card);border-radius:var(--radius);padding:14px;margin-bottom:10px;border:1px solid rgba(255,255,255,0.05);transition:background 0.2s}
 .stock-item:active{background:var(--card-hover)}
-.stock-info{flex:1;min-width:0}
 .stock-name{font-size:15px;font-weight:600;margin-bottom:2px}
 .stock-code{font-size:11px;color:var(--text2)}
-.stock-price{text-align:right}
-.stock-price .price{font-size:18px;font-weight:700}
-.stock-price .change{font-size:12px;margin-top:2px}
 .up{color:var(--up)}.down{color:var(--down)}
-.badge{
-  display:inline-block;
-  padding:3px 8px;
-  border-radius:4px;
-  font-size:10px;
-  font-weight:700;
-  letter-spacing:0.5px;
-}
+.badge{display:inline-block;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:0.5px}
 .badge-up{background:rgba(255,71,87,0.2);color:var(--up)}
 .badge-down{background:rgba(46,213,115,0.2);color:var(--down)}
 .badge-A{background:rgba(255,71,87,0.25);color:#ff4757;font-size:12px;padding:4px 10px}
@@ -239,151 +117,43 @@ body{
 .badge-moderate{background:rgba(74,144,217,0.2);color:var(--blue)}
 .badge-high{background:rgba(245,166,35,0.2);color:var(--orange)}
 .badge-caution{background:rgba(255,71,87,0.2);color:var(--danger)}
-/* 预警开关 */
-.toggle-row{
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-  margin:6px 0;
-}
-.toggle-chip{
-  padding:5px 12px;
-  border-radius:20px;
-  font-size:11px;
-  background:rgba(255,255,255,0.05);
-  color:var(--text2);
-  cursor:pointer;
-  border:1px solid transparent;
-  user-select:none;
-  transition:all 0.2s;
-}
-.toggle-chip.on{
-  background:rgba(240,192,64,0.15);
-  color:var(--gold);
-  border-color:var(--gold);
-}
-/* 持仓输入行 */
-.pos-input-row{
-  display:flex;
-  gap:10px;
-  align-items:flex-end;
-}
-/* 环形图 */
-.ring-wrap{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  position:relative;
-}
+.toggle-row{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0}
+.toggle-chip{padding:5px 12px;border-radius:20px;font-size:11px;background:rgba(255,255,255,0.05);color:var(--text2);cursor:pointer;border:1px solid transparent;user-select:none;transition:all 0.2s}
+.toggle-chip.on{background:rgba(240,192,64,0.15);color:var(--gold);border-color:var(--gold)}
+.ring-wrap{display:flex;flex-direction:column;align-items:center;position:relative}
 .ring-canvas{width:100%;max-width:220px;height:auto}
-.ring-center{
-  position:absolute;
-  top:50%;left:50%;
-  transform:translate(-50%,-50%);
-  text-align:center;
-}
+.ring-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
 .ring-percent{font-size:42px;font-weight:800;letter-spacing:-1px}
 .ring-label{font-size:12px;color:var(--text2);margin-top:2px}
-/* 弹窗 */
-.modal-overlay{
-  display:none;
-  position:fixed;
-  top:0;left:0;right:0;bottom:0;
-  background:rgba(0,0,0,0.7);
-  z-index:200;
-  justify-content:center;
-  align-items:flex-end;
-}
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:200;justify-content:center;align-items:flex-end}
 .modal-overlay.show{display:flex}
-.modal{
-  background:#1a1a2e;
-  border-radius:18px 18px 0 0;
-  width:100%;
-  max-width:420px;
-  padding:20px 16px 30px;
-  animation:slideUp 0.3s ease;
-}
+.modal{background:#1a1a2e;border-radius:18px 18px 0 0;width:100%;max-width:420px;padding:20px 16px 30px;animation:slideUp 0.3s ease}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.modal-title{
-  font-size:17px;
-  font-weight:700;
-  margin-bottom:16px;
-  text-align:center;
-}
-.modal-close{
-  position:absolute;
-  top:18px;
-  right:18px;
-  font-size:20px;
-  color:var(--text2);
-  cursor:pointer;
-  background:none;
-  border:none;
-}
-/* Toast */
-.toast{
-  position:fixed;
-  top:20px;
-  left:50%;
-  transform:translateX(-50%);
-  background:#1a1a2e;
-  color:var(--text);
-  padding:12px 24px;
-  border-radius:10px;
-  font-size:14px;
-  z-index:300;
-  opacity:0;
-  transition:opacity 0.3s;
-  pointer-events:none;
-  border:1px solid rgba(255,255,255,0.1);
-  max-width:90%;
-  text-align:center;
-}
+.modal-title{font-size:17px;font-weight:700;margin-bottom:16px;text-align:center}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:var(--text);padding:12px 24px;border-radius:10px;font-size:14px;z-index:300;opacity:0;transition:opacity 0.3s;pointer-events:none;border:1px solid rgba(255,255,255,0.1);max-width:90%;text-align:center}
 .toast.show{opacity:1}
-/* 搜索建议 */
-.search-result{
-  background:var(--card);
-  border-radius:var(--radius);
-  padding:14px;
-  margin-top:8px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  cursor:pointer;
-  border:1px solid rgba(255,255,255,0.05);
-}
+.search-result{background:var(--card);border-radius:var(--radius);padding:14px;margin-top:8px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;border:1px solid rgba(255,255,255,0.05)}
 .search-result:active{background:var(--card-hover)}
-/* 预警记录 */
-.alert-log{
-  font-size:12px;
-  color:var(--text2);
-  max-height:200px;
-  overflow-y:auto;
-}
-.alert-log-item{
-  padding:8px 0;
-  border-bottom:1px solid rgba(255,255,255,0.04);
-  display:flex;
-  justify-content:space-between;
-}
-/* 空态 */
-.empty-state{
-  text-align:center;
-  padding:40px 20px;
-  color:var(--text2);
-}
+.alert-log{font-size:12px;color:var(--text2);max-height:200px;overflow-y:auto}
+.alert-log-item{padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;justify-content:space-between}
+.empty-state{text-align:center;padding:40px 20px;color:var(--text2)}
 .empty-state .empty-icon{font-size:48px;margin-bottom:12px}
 .empty-state .empty-text{font-size:14px;line-height:1.6}
-/* 设置区 */
-.setting-row{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:10px 0;
-  border-bottom:1px solid rgba(255,255,255,0.04);
-}
-.setting-label{font-size:13px;color:var(--text2)}
-.setting-value{font-size:13px;color:var(--text)}
+.advice-list{list-style:none;padding:0}
+.advice-list li{padding:8px 0 8px 12px;border-left:2px solid rgba(255,255,255,0.1);margin-bottom:6px;font-size:13px;line-height:1.6;color:var(--text2)}
+.advice-list li:nth-child(1){border-left-color:var(--gold)}
+.pos-row{display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap}
+.pos-row .input{flex:1;min-width:70px;font-size:12px;padding:8px 10px}
+.pos-stats{font-size:11px;color:var(--text2);margin-top:6px;display:flex;gap:12px;flex-wrap:wrap}
+.pos-stats span{white-space:nowrap}
+.overview-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.overview-item{background:var(--card);border-radius:10px;padding:12px;text-align:center}
+.overview-item .ov-label{font-size:10px;color:var(--text2);margin-bottom:4px}
+.overview-item .ov-value{font-size:18px;font-weight:700}
+.wechat-setup{background:rgba(46,213,115,0.08);border:1px solid rgba(46,213,115,0.15);border-radius:12px;padding:14px;margin-bottom:12px}
+.wechat-setup .step{font-size:12px;color:var(--text2);margin:4px 0;padding-left:16px;position:relative}
+.wechat-setup .step::before{content:'●';position:absolute;left:0;color:var(--gold);font-size:8px;top:2px}
+.link{color:var(--gold);text-decoration:underline;cursor:pointer}
 </style>
 </head>
 <body>
@@ -393,7 +163,7 @@ body{
     <div class="header-status" id="statusBar"><span class="dot"></span>连接中</div>
   </div>
 
-  <!-- Tab 0: 大盘情绪 -->
+  <!-- Tab 0: 大盘冰点指数 -->
   <div class="tab-content active" id="tab-sentiment">
     <div class="card" style="text-align:center">
       <div class="gauge-wrap">
@@ -409,36 +179,41 @@ body{
       </div>
       <div style="font-size:11px;color:var(--text2);margin-top:6px" id="updateTime"></div>
     </div>
-    <div class="card" id="sentimentAdvice" style="text-align:center">
-      <div class="card-header">📋 操作建议</div>
-      <div style="font-size:14px;line-height:1.8" id="adviceText">正在获取数据...</div>
+    <div class="card">
+      <div class="card-header">📋 今日操作建议</div>
+      <ul class="advice-list" id="adviceList"></ul>
+    </div>
+    <div class="card">
+      <div class="card-header">📊 冰点指数说明</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.8">
+        基准：上证 3000点 = 60分 ｜ ±100点 = ±1分<br>
+        0-30 极度悲观 · 30-45 偏悲观 · 45-55 中性 · 55-70 偏乐观 · 70-100 极度乐观
+      </div>
     </div>
   </div>
 
-  <!-- Tab 1: 异动预警 -->
+  <!-- Tab 1: 个股异动预警 -->
   <div class="tab-content" id="tab-alerts">
-    <div class="card" style="margin-bottom:8px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <span style="font-size:13px;font-weight:600">🔔 微信推送设置</span>
-        <span style="font-size:10px;color:var(--text2)">可选</span>
-      </div>
-      <div style="font-size:11px;color:var(--text2);margin-bottom:8px">
-        去 <span style="color:var(--gold)">sct.ftqq.com</span> 微信扫码获取 SendKey，粘贴到下方即可推送预警到微信
-      </div>
-      <div class="input-row">
-        <input class="input" id="sendKeyInput" placeholder="粘贴 Server酱 SendKey" style="font-size:12px">
+    <div class="wechat-setup" id="wechatSetup">
+      <div style="font-weight:600;margin-bottom:8px">🔔 微信推送（预警直接发到微信）</div>
+      <div class="step">打开 <span class="link" onclick="window.open('https://sct.ftqq.com/login')">sct.ftqq.com</span>，微信扫码登录</div>
+      <div class="step">复制页面上的 <b>SendKey</b></div>
+      <div class="step">粘贴到下方，点保存</div>
+      <div class="input-row" style="margin-top:10px">
+        <input class="input" id="sendKeyInput" placeholder="粘贴 SendKey" style="font-size:12px">
         <button class="btn btn-sm" onclick="App.saveSendKey()">保存</button>
       </div>
+      <div style="font-size:10px;color:var(--text2);margin-top:4px" id="wechatStatus">未设置</div>
     </div>
     <div class="input-row">
-      <input class="input" id="alertSearchInput" placeholder="输入股票代码搜索，如 600519" autocomplete="off">
+      <input class="input" id="alertSearchInput" placeholder="输入股票代码，如 600519" autocomplete="off">
       <button class="btn" onclick="App.searchStock('alert')">搜索</button>
     </div>
     <div id="alertSearchResult"></div>
     <div id="alertStockList"></div>
     <div id="alertEmpty" class="empty-state">
       <div class="empty-icon">⚡</div>
-      <div class="empty-text">暂无监控股票<br>上方搜索并添加</div>
+      <div class="empty-text">暂无监控股票<br>上方搜索代码添加<br>支持涨停/跌停/急拉/急跌四种预警</div>
     </div>
     <div class="card" style="margin-top:12px" id="alertLogCard">
       <div class="card-header">📋 预警记录</div>
@@ -446,10 +221,10 @@ body{
     </div>
   </div>
 
-  <!-- Tab 2: 持仓评级 -->
+  <!-- Tab 2: 持仓强弱评级 -->
   <div class="tab-content" id="tab-position">
     <div class="input-row">
-      <input class="input" id="posSearchInput" placeholder="输入股票代码搜索，如 000001" autocomplete="off">
+      <input class="input" id="posSearchInput" placeholder="输入股票代码，如 000001" autocomplete="off">
       <button class="btn" onclick="App.searchStock('position')">添加</button>
     </div>
     <div id="posSearchResult"></div>
@@ -457,13 +232,13 @@ body{
     <div id="posStockList"></div>
     <div id="posEmpty" class="empty-state">
       <div class="empty-icon">📈</div>
-      <div class="empty-text">暂无持仓股票<br>上方搜索并添加</div>
+      <div class="empty-text">暂无持仓股票<br>上方搜索代码添加<br>添加后输入持股数量即可分析</div>
     </div>
   </div>
 
   <!-- Tab 3: 仓位安全 -->
   <div class="tab-content" id="tab-account">
-    <div class="card">
+    <div class="card" style="text-align:center">
       <div class="ring-wrap">
         <canvas class="ring-canvas" id="ringCanvas" width="220" height="220"></canvas>
         <div class="ring-center">
@@ -477,18 +252,31 @@ body{
       <div style="font-size:13px;color:var(--text2);text-align:center;margin-top:8px;line-height:1.6" id="safetyAdvice"></div>
     </div>
     <div class="card">
-      <div class="card-header">💰 账户信息</div>
-      <div style="margin-bottom:12px">
-        <div style="font-size:12px;color:var(--text2);margin-bottom:4px">总资产（元）</div>
-        <input class="input" id="totalAsset" type="number" placeholder="如 100000" oninput="App.updateAccount()" style="width:100%">
+      <div class="card-header">💰 资产概览</div>
+      <div class="overview-grid">
+        <div class="overview-item">
+          <div class="ov-label">💰 现金余额</div>
+          <div class="ov-value" style="color:var(--blue)" id="cashVal">--</div>
+        </div>
+        <div class="overview-item">
+          <div class="ov-label">📈 持仓市值</div>
+          <div class="ov-value" style="color:var(--gold)" id="holdingVal">--</div>
+        </div>
+        <div class="overview-item">
+          <div class="ov-label">🏦 总资产</div>
+          <div class="ov-value" style="color:var(--text)" id="totalAssetVal">--</div>
+        </div>
+        <div class="overview-item">
+          <div class="ov-label">📊 仓位比例</div>
+          <div class="ov-value" id="posRatioVal">--</div>
+        </div>
       </div>
-      <div style="margin-bottom:12px">
-        <div style="font-size:12px;color:var(--text2);margin-bottom:4px">已用资金 / 持仓市值（元）</div>
-        <input class="input" id="usedFund" type="number" placeholder="如 75000" oninput="App.updateAccount()" style="width:100%">
+      <div style="margin-bottom:10px">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:4px">💰 现金余额（元）</div>
+        <input class="input" id="cashInput" type="number" placeholder="如 50000" oninput="App.updateAccount()" style="width:100%;margin-bottom:8px">
       </div>
-      <div style="display:flex;gap:10px;font-size:12px;color:var(--text2)">
-        <span>可用资金：<strong style="color:var(--text)" id="availFund">--</strong></span>
-        <span>仓位比例：<strong style="color:var(--gold)" id="posRatio">--</strong></span>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:6px">
+        📈 持仓市值自动从「持仓」页面同步（价格 × 数量）
       </div>
     </div>
     <div class="card">
@@ -505,7 +293,7 @@ body{
   <!-- 底部导航 -->
   <nav class="bottom-nav">
     <div class="nav-item active" data-tab="0" onclick="App.switchTab(0)">
-      <span class="nav-icon">📊</span><span class="nav-label">大盘</span>
+      <span class="nav-icon">🧊</span><span class="nav-label">冰点</span>
     </div>
     <div class="nav-item" data-tab="1" onclick="App.switchTab(1)">
       <span class="nav-icon">⚡</span><span class="nav-label">预警</span>
@@ -519,19 +307,16 @@ body{
   </nav>
 </div>
 
-<!-- Toast -->
 <div class="toast" id="toast"></div>
 
 <script>
 // ==================== 配置 ====================
-const TABS = ['sentiment','alerts','position','account'];
 const API = {
   index: 'https://push2.eastmoney.com/api/qt/stock/get?secid=1.000001&fields=f43,f44,f45,f46,f47,f48,f50,f57,f58,f60,f169,f170,f171',
   stock: (code) => {
     const market = /^[0-2]/.test(code) ? '0' : '1';
     return `https://push2.eastmoney.com/api/qt/stock/get?secid=${market}.${code}&fields=f43,f44,f45,f46,f47,f48,f50,f51,f52,f57,f58,f60,f169,f170,f171`;
   },
-  // K线数据用于计算周/月涨跌幅
   kline: (code, klt, lmt) => {
     const market = /^[0-2]/.test(code) ? '0' : '1';
     return `https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=${market}.${code}&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61&klt=${klt}&fqt=1&end=20500101&lmt=${lmt}`;
@@ -541,28 +326,18 @@ const STORAGE_KEY = {
   alertStocks: 'pance_alert_stocks',
   positionStocks: 'pance_position_stocks',
   sendKey: 'pance_sendkey',
-  account: 'pance_account',
+  cashBalance: 'pance_cash',
   alertLog: 'pance_alert_log'
 };
+const TABS = ['sentiment','alerts','position','account'];
 
 // ==================== 工具函数 ====================
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => document.querySelectorAll(s);
-
-function fmtMoney(n) {
-  if (n == null || isNaN(n)) return '--';
-  return Number(n).toFixed(2);
-}
-function fmtPct(n) {
-  if (n == null || isNaN(n)) return '--';
-  const v = Number(n);
-  return (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
-}
-function fmtPctShort(n) {
-  if (n == null || isNaN(n)) return '--';
-  return Number(n).toFixed(2) + '%';
-}
-
+function fmtMoney(n) { if (n == null || isNaN(n)) return '--'; return Number(n).toFixed(2); }
+function fmtInt(n) { if (n == null || isNaN(n)) return '--'; return Math.round(Number(n)).toLocaleString(); }
+function fmtPct(n) { if (n == null || isNaN(n)) return '--'; return (Number(n) >= 0 ? '+' : '') + Number(n).toFixed(2) + '%'; }
+function fmtPctShort(n) { if (n == null || isNaN(n)) return '--'; return Number(n).toFixed(2) + '%'; }
 function toast(msg) {
   const el = $('#toast');
   el.textContent = msg;
@@ -581,29 +356,16 @@ const Store = {
 
 // ==================== API 请求 ====================
 async function fetchAPI(url) {
-  try {
-    const resp = await fetch(url);
-    const json = await resp.json();
-    return json;
-  } catch(e) {
-    return null;
-  }
+  try { const resp = await fetch(url); return await resp.json(); } catch(e) { return null; }
 }
 
 function parseIndexData(json) {
   if (!json || !json.data) return null;
   const d = json.data;
   return {
-    name: d.f57 || '上证指数',
-    price: d.f43 / 100,
-    open: d.f46 / 100,
-    high: d.f44 / 100,
-    low: d.f45 / 100,
-    prevClose: d.f60 / 100,
-    change: d.f169 / 100,
-    changePct: d.f170 / 100,
-    volume: d.f47,
-    amount: d.f48
+    name: d.f57 || '上证指数', price: d.f43 / 100, open: d.f46 / 100,
+    high: d.f44 / 100, low: d.f45 / 100, prevClose: d.f60 / 100,
+    change: d.f169 / 100, changePct: d.f170 / 100, volume: d.f47, amount: d.f48
   };
 }
 
@@ -611,59 +373,40 @@ function parseStockData(json) {
   if (!json || !json.data) return null;
   const d = json.data;
   return {
-    name: d.f57 || '--',
-    code: d.f57 ? '' : '--',
-    price: d.f43 / 100,
-    open: d.f46 / 100,
-    high: d.f44 / 100,
-    low: d.f45 / 100,
-    prevClose: d.f58 / 100,
-    change: d.f169 / 100,
-    changePct: d.f170 / 100,
-    limitUp: d.f51 ? d.f51 / 100 : null,
-    limitDown: d.f52 ? d.f52 / 100 : null
+    name: d.f57 || '--', price: d.f43 / 100, open: d.f46 / 100,
+    high: d.f44 / 100, low: d.f45 / 100, prevClose: d.f58 / 100,
+    change: d.f169 / 100, changePct: d.f170 / 100,
+    limitUp: d.f51 ? d.f51 / 100 : null, limitDown: d.f52 ? d.f52 / 100 : null
   };
 }
 
 function parseKlineData(json) {
   if (!json || !json.data || !json.data.klines) return [];
   return json.data.klines.map(k => {
-    const parts = k.split(',');
-    return {
-      date: parts[0],
-      open: Number(parts[1]),
-      close: Number(parts[2]),
-      high: Number(parts[3]),
-      low: Number(parts[4]),
-      volume: Number(parts[5]),
-      amount: Number(parts[6])
-    };
+    const p = k.split(',');
+    return { date: p[0], open: Number(p[1]), close: Number(p[2]), high: Number(p[3]), low: Number(p[4]), volume: Number(p[5]), amount: Number(p[6]) };
   });
 }
 
-// ==================== 通知服务 ====================
+// ==================== 微信推送 ====================
 async function sendWechatNotify(title, content) {
   const key = Store.get(STORAGE_KEY.sendKey);
   if (!key) return false;
   try {
-    const url = `https://sctapi.ftqq.com/${key}.send`;
-    await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    await fetch(`https://sctapi.ftqq.com/${key}.send`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title, desp: content })
     });
     return true;
-  } catch(e) {
-    return false;
-  }
+  } catch(e) { return false; }
 }
 
-// ==================== Canvas 绘制 ====================
+// ==================== Canvas 仪表盘 ====================
 function drawGauge(score) {
   const canvas = $('#gaugeCanvas');
   if (!canvas) return;
   const w = canvas.clientWidth;
-  if (w < 10) return; // tab 不可见时跳过
+  if (w < 10) return;
   const ctx = canvas.getContext('2d');
   const dpr = window.devicePixelRatio || 1;
   const h = 180;
@@ -674,60 +417,33 @@ function drawGauge(score) {
   const cx = w / 2, cy = h - 20, r = Math.min(w / 2 - 10, 150);
   ctx.clearRect(0, 0, w, h);
 
-  // 背景弧（灰）
   ctx.beginPath();
   ctx.arc(cx, cy, r, Math.PI, 0);
   ctx.strokeStyle = 'rgba(255,255,255,0.08)';
   ctx.lineWidth = 14;
   ctx.stroke();
 
-  // 彩色段
-  const segments = [
-    [0, 30, '#2ed573'],
-    [30, 45, '#7bed9f'],
-    [45, 55, '#8899aa'],
-    [55, 70, '#ff6b81'],
-    [70, 100, '#ff4757']
-  ];
+  const segments = [[0,30,'#2ed573'],[30,45,'#7bed9f'],[45,55,'#8899aa'],[55,70,'#ff6b81'],[70,100,'#ff4757']];
   segments.forEach(([s, e, color]) => {
-    const startAngle = Math.PI + (s / 100) * Math.PI;
-    const endAngle = Math.PI + (e / 100) * Math.PI;
     ctx.beginPath();
-    ctx.arc(cx, cy, r, startAngle, endAngle);
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 14;
-    ctx.stroke();
+    ctx.arc(cx, cy, r, Math.PI + (s/100)*Math.PI, Math.PI + (e/100)*Math.PI);
+    ctx.strokeStyle = color; ctx.lineWidth = 14; ctx.stroke();
   });
 
-  // 指针
-  const clampedScore = Math.max(0, Math.min(100, score));
-  const angle = Math.PI + (clampedScore / 100) * Math.PI;
-  const pointerLen = r - 25;
-  const px = cx + Math.cos(angle) * pointerLen;
-  const py = cy + Math.sin(angle) * pointerLen;
+  const clamped = Math.max(0, Math.min(100, score));
+  const angle = Math.PI + (clamped / 100) * Math.PI;
+  const px = cx + Math.cos(angle) * (r - 25);
+  const py = cy + Math.sin(angle) * (r - 25);
 
-  ctx.beginPath();
-  ctx.moveTo(cx, cy);
-  ctx.lineTo(px, py);
-  ctx.strokeStyle = '#f0c040';
-  ctx.lineWidth = 3;
-  ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(px, py);
+  ctx.strokeStyle = '#f0c040'; ctx.lineWidth = 3; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx, cy, 8, 0, Math.PI * 2);
+  ctx.fillStyle = '#f0c040'; ctx.fill();
 
-  // 中心圆
-  ctx.beginPath();
-  ctx.arc(cx, cy, 8, 0, Math.PI * 2);
-  ctx.fillStyle = '#f0c040';
-  ctx.fill();
-
-  // 刻度数字
-  ctx.fillStyle = '#8899aa';
-  ctx.font = '10px sans-serif';
-  ctx.textAlign = 'center';
-  [0, 20, 40, 60, 80, 100].forEach(v => {
-    const a = Math.PI + (v / 100) * Math.PI;
-    const tx = cx + Math.cos(a) * (r - 22);
-    const ty = cy + Math.sin(a) * (r - 22);
-    ctx.fillText(v, tx, ty + 3);
+  ctx.fillStyle = '#8899aa'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+  [0,20,40,60,80,100].forEach(v => {
+    const a = Math.PI + (v/100)*Math.PI;
+    ctx.fillText(v, cx + Math.cos(a)*(r-22), cy + Math.sin(a)*(r-22) + 3);
   });
 }
 
@@ -739,12 +455,35 @@ function getSentimentLabel(score) {
   return { text: '极度乐观', color: '#ff4757', cls: 'badge-up' };
 }
 
-function getSentimentAdvice(score) {
-  if (score <= 30) return '市场恐慌情绪浓厚，往往是中长期布局的好时机，可关注超跌优质股';
-  if (score <= 45) return '市场偏弱，建议控制仓位，精选个股，避免追高操作';
-  if (score <= 55) return '市场情绪平稳，适合正常操作，可按照自己的策略进行交易';
-  if (score <= 70) return '市场情绪向好，可适当积极操作，但仍需注意个股基本面';
-  return '市场情绪过热，注意风险控制，建议逐步降低仓位，锁定利润';
+function getAdvices(score, changePct) {
+  const advices = [];
+  if (score <= 30) {
+    advices.push('🟢 市场极度恐慌，往往是中长期布局的黄金窗口，可关注超跌优质白马股');
+    advices.push('🟢 建议分批建仓，控制单只个股仓位不超过总资产 10%');
+    advices.push('🟢 关注政策面信号，极端悲观往往孕育反弹机会');
+  } else if (score <= 45) {
+    advices.push('🔵 市场偏弱震荡，建议保持 5 成以下仓位，多看少动');
+    advices.push('🔵 可关注防御性板块（消费、医药），规避高估值题材股');
+    advices.push('🔵 如持有现金，可逐步关注被错杀的绩优股');
+  } else if (score <= 55) {
+    advices.push('⚪ 市场情绪平稳，适合按照自身策略正常操作');
+    advices.push('⚪ 建议做好止盈止损计划，涨不贪、跌不慌');
+    advices.push('⚪ 关注成交量的变化，放量突破或破位是重要信号');
+  } else if (score <= 70) {
+    advices.push('🟠 市场情绪偏暖，可适度提升仓位至 7 成，积极操作');
+    advices.push('🟠 关注领涨板块轮动，及时止盈切换到低位板块');
+    advices.push('🟠 注意不要追高，回调到均线支撑位再介入更安全');
+  } else {
+    advices.push('🔴 市场情绪过热，风险正在累积，建议逐步降低仓位');
+    advices.push('🔴 每涨 100 点减 1 成仓位，锁定利润、落袋为安');
+    advices.push('🔴 高度警惕高位放量滞涨，这是见顶的典型信号');
+  }
+  if (changePct != null) {
+    if (changePct > 2) advices.push('⚠️ 今日大涨 ' + fmtPct(changePct) + '，短期追高风险较大，等回调再考虑加仓');
+    else if (changePct < -2) advices.push('⚠️ 今日大跌 ' + fmtPct(changePct) + '，耐心等企稳信号出现再动手，不要急于抄底');
+  }
+  advices.push('📌 以上建议仅供参考，投资有风险，交易需谨慎');
+  return advices;
 }
 
 function drawRing(percent) {
@@ -754,44 +493,31 @@ function drawRing(percent) {
   if (size < 10) return;
   const ctx = canvas.getContext('2d');
   const dpr = window.devicePixelRatio || 1;
-  canvas.width = size * dpr;
-  canvas.height = size * dpr;
+  canvas.width = size * dpr; canvas.height = size * dpr;
   ctx.scale(dpr, dpr);
-
   const cx = size / 2, cy = size / 2, r = size / 2 - 16;
   ctx.clearRect(0, 0, size, size);
+  ctx.beginPath(); ctx.arc(cx, cy, r, -Math.PI / 2, Math.PI * 1.5);
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = 16; ctx.stroke();
 
-  // 背景环
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, -Math.PI / 2, Math.PI * 1.5);
-  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
-  ctx.lineWidth = 16;
-  ctx.stroke();
-
-  // 进度环颜色
   const p = Math.max(0, Math.min(100, percent)) / 100;
   let color = '#2ed573';
   if (p > 0.9) color = '#ff4757';
   else if (p > 0.8) color = '#f5a623';
   else if (p > 0.7) color = '#4a90d9';
 
-  const endAngle = -Math.PI / 2 + p * Math.PI * 2;
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, -Math.PI / 2, endAngle);
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 16;
-  ctx.lineCap = 'round';
-  ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + p * Math.PI * 2);
+  ctx.strokeStyle = color; ctx.lineWidth = 16; ctx.lineCap = 'round'; ctx.stroke();
 }
 
 function getSafetyLevel(pct) {
   if (pct <= 70) return { level: '安全稳健', color: 'var(--safe)', cls: 'badge-safe', advice: '仓位合理，有充分余地应对市场波动。保持当前节奏，等待好机会再出手。' };
   if (pct <= 80) return { level: '适中控制', color: 'var(--blue)', cls: 'badge-moderate', advice: '仓位略高，建议注意控制新开仓节奏，保留一定现金应对突发情况。' };
   if (pct <= 90) return { level: '风险偏高', color: 'var(--orange)', cls: 'badge-high', advice: '风险正在累积，建议适当降低仓位，卖出部分获利标的，增加现金比例。' };
-  return { level: '高度谨慎', color: 'var(--danger)', cls: 'badge-caution', advice: '满仓操作风险极大！强烈建议减仓，至少要留出20%以上的现金应对市场不确定性。' };
+  return { level: '高度谨慎', color: 'var(--danger)', cls: 'badge-caution', advice: '满仓操作风险极大！强烈建议减仓，至少要留出 20% 以上的现金应对市场不确定性。' };
 }
 
-// ==================== 大盘模块 ====================
+// ==================== 大盘冰点指数 ====================
 let indexData = null;
 
 async function updateSentiment() {
@@ -802,7 +528,6 @@ async function updateSentiment() {
     const clamped = Math.round(Math.max(0, Math.min(100, score)) * 10) / 10;
     const label = getSentimentLabel(clamped);
     const changeColor = indexData.changePct >= 0 ? 'var(--up)' : 'var(--down)';
-    const changeSign = indexData.changePct >= 0 ? '+' : '';
 
     $('#scoreNum').textContent = clamped;
     $('#scoreNum').style.color = label.color;
@@ -810,10 +535,12 @@ async function updateSentiment() {
     $('#scoreLabel').style.background = label.color + '22';
     $('#scoreLabel').style.color = label.color;
     $('#shIndex').textContent = fmtMoney(indexData.price);
-    $('#shChange').innerHTML = `<span style="color:${changeColor}">${changeSign}${fmtPct(indexData.changePct)}</span>`;
-    $('#adviceText').textContent = getSentimentAdvice(clamped);
+    $('#shChange').innerHTML = `<span style="color:${changeColor}">${fmtPct(indexData.changePct)}</span>`;
     $('#updateTime').textContent = '更新于 ' + new Date().toLocaleTimeString();
     $('#statusBar').innerHTML = '<span class="dot" style="background:var(--down)"></span>已连接';
+
+    const advices = getAdvices(clamped, indexData.changePct);
+    $('#adviceList').innerHTML = advices.map(a => `<li>${a}</li>`).join('');
 
     drawGauge(clamped);
   } else {
@@ -822,28 +549,18 @@ async function updateSentiment() {
 }
 
 // ==================== 预警模块 ====================
-const priceSnapshots = {}; // { code: [{price, time}] }
-const lastAlertTime = {}; // { code_type: timestamp } 防止重复预警
-const ALERT_COOLDOWN = 120000; // 同一股票同一类型预警冷却2分钟
+const priceSnapshots = {};
+const lastAlertTime = {};
+const ALERT_COOLDOWN = 120000;
 
 function getAlertStocks() { return Store.getArr(STORAGE_KEY.alertStocks); }
 function saveAlertStocks(list) { Store.set(STORAGE_KEY.alertStocks, list); }
-
 function getAlertLogs() { return Store.getArr(STORAGE_KEY.alertLog); }
-function saveAlertLogs(list) {
-  if (list.length > 50) list = list.slice(-50);
-  Store.set(STORAGE_KEY.alertLog, list);
-}
+function saveAlertLogs(list) { if (list.length > 50) list = list.slice(-50); Store.set(STORAGE_KEY.alertLog, list); }
 
 function addAlertLog(stock, type, price) {
   const logs = getAlertLogs();
-  logs.push({
-    time: new Date().toLocaleString(),
-    name: stock.name,
-    code: stock.code,
-    type,
-    price
-  });
+  logs.push({ time: new Date().toLocaleString(), name: stock.name, code: stock.code, type, price });
   saveAlertLogs(logs);
   renderAlertLog();
 }
@@ -851,20 +568,16 @@ function addAlertLog(stock, type, price) {
 function renderAlertLog() {
   const logs = getAlertLogs();
   const el = $('#alertLog');
-  if (logs.length === 0) {
-    el.innerHTML = '<span style="color:var(--text2)">暂无预警记录</span>';
-  } else {
-    el.innerHTML = logs.reverse().map(l =>
-      `<div class="alert-log-item"><span>${l.time} · ${l.name}(${l.code})</span><span style="color:var(--gold)">${l.type} @ ${l.price}</span></div>`
-    ).join('');
-  }
+  if (logs.length === 0) { el.innerHTML = '<span style="color:var(--text2)">暂无预警记录</span>'; return; }
+  el.innerHTML = logs.reverse().map(l =>
+    `<div class="alert-log-item"><span>${l.time} · ${l.name}(${l.code})</span><span style="color:var(--gold)">${l.type} @ ${l.price}</span></div>`
+  ).join('');
 }
 
 function updatePriceSnapshot(code, price) {
   if (!priceSnapshots[code]) priceSnapshots[code] = [];
   const snap = priceSnapshots[code];
   snap.push({ price, time: Date.now() });
-  // 只保留最近3分钟的数据
   const cutoff = Date.now() - 180000;
   while (snap.length > 0 && snap[0].time < cutoff) snap.shift();
 }
@@ -872,23 +585,15 @@ function updatePriceSnapshot(code, price) {
 function checkAlerts(stock, currentPrice) {
   const triggers = [];
   const now = Date.now();
-
-  // 涨停/跌停检查：用涨跌幅判断（>=9.5% 接近涨停，<=-9.5% 接近跌停）
   const changePct = stock._changePct;
   if (changePct != null && changePct >= 9.5) {
     const key = stock.code + '_涨停';
-    if (!lastAlertTime[key] || now - lastAlertTime[key] > ALERT_COOLDOWN) {
-      triggers.push({ type: '涨停', key });
-    }
+    if (!lastAlertTime[key] || now - lastAlertTime[key] > ALERT_COOLDOWN) triggers.push({ type: '涨停', key });
   }
   if (changePct != null && changePct <= -9.5) {
     const key = stock.code + '_跌停';
-    if (!lastAlertTime[key] || now - lastAlertTime[key] > ALERT_COOLDOWN) {
-      triggers.push({ type: '跌停', key });
-    }
+    if (!lastAlertTime[key] || now - lastAlertTime[key] > ALERT_COOLDOWN) triggers.push({ type: '跌停', key });
   }
-
-  // 2分钟急拉/急跌检查
   const snap = priceSnapshots[stock.code];
   if (snap && snap.length >= 2) {
     const twoMinAgo = now - 120000;
@@ -897,19 +602,14 @@ function checkAlerts(stock, currentPrice) {
       const pctChange = ((currentPrice - oldSnap.price) / oldSnap.price) * 100;
       if (pctChange >= 2) {
         const key = stock.code + '_急拉';
-        if (!lastAlertTime[key] || now - lastAlertTime[key] > ALERT_COOLDOWN) {
-          triggers.push({ type: '急拉', key });
-        }
+        if (!lastAlertTime[key] || now - lastAlertTime[key] > ALERT_COOLDOWN) triggers.push({ type: '急拉', key });
       }
       if (pctChange <= -2) {
         const key = stock.code + '_急跌';
-        if (!lastAlertTime[key] || now - lastAlertTime[key] > ALERT_COOLDOWN) {
-          triggers.push({ type: '急跌', key });
-        }
+        if (!lastAlertTime[key] || now - lastAlertTime[key] > ALERT_COOLDOWN) triggers.push({ type: '急跌', key });
       }
     }
   }
-
   return triggers;
 }
 
@@ -922,22 +622,16 @@ async function monitorAlertStocks() {
     const data = parseStockData(json);
     if (!data) continue;
 
-    // 更新快照
     updatePriceSnapshot(stock.code, data.price);
-
-    // 更新实时数据到 stock 对象
     stock._price = data.price;
     stock._changePct = data.changePct;
     stock._prevClose = data.prevClose;
     stock.limitUp = data.limitUp;
     stock.limitDown = data.limitDown;
 
-    // 检查预警
     const triggers = checkAlerts(stock, data.price);
     for (const t of triggers) {
-      // trigger type 与 alertTypes 直接匹配（alertTypes存的是'涨停'/'跌停'/'急拉'/'急跌'）
       if (!stock.alertTypes.includes(t.type)) continue;
-
       lastAlertTime[t.key] = Date.now();
       const typeEmoji = { '涨停':'🔴', '跌停':'🟢', '急拉':'⚡', '急跌':'💧' };
       const msg = `${stock.name}(${stock.code}) 触发 ${typeEmoji[t.type]||''}${t.type}预警，当前价格 ${data.price}`;
@@ -953,12 +647,7 @@ function renderAlertList() {
   const stocks = getAlertStocks();
   const listEl = $('#alertStockList');
   const emptyEl = $('#alertEmpty');
-
-  if (stocks.length === 0) {
-    listEl.innerHTML = '';
-    emptyEl.style.display = 'block';
-    return;
-  }
+  if (stocks.length === 0) { listEl.innerHTML = ''; emptyEl.style.display = 'block'; return; }
   emptyEl.style.display = 'none';
 
   listEl.innerHTML = stocks.map((s, i) => {
@@ -986,16 +675,7 @@ function renderAlertList() {
   }).join('');
 }
 
-function renderAlertStockListOnly() {
-  // 只更新价格，不重建DOM（减少闪烁）
-  const stocks = getAlertStocks();
-  const items = $$('#alertStockList .stock-item');
-  if (items.length !== stocks.length) { renderAlertList(); return; }
-  // 简单刷新整个列表
-  renderAlertList();
-}
-
-// ==================== 持仓模块 ====================
+// ==================== 持仓模块（含数量、市值、占比） ====================
 function getPosStocks() { return Store.getArr(STORAGE_KEY.positionStocks); }
 function savePosStocks(list) { Store.set(STORAGE_KEY.positionStocks, list); }
 
@@ -1010,47 +690,41 @@ function getRating(weekChg, monthChg) {
 
 async function updatePositionData() {
   const stocks = getPosStocks();
-  if (stocks.length === 0) {
-    renderPosList();
-    return;
-  }
+  if (stocks.length === 0) { renderPosList(); return; }
 
   for (const stock of stocks) {
-    // 获取实时价格
     const json = await fetchAPI(API.stock(stock.code));
     if (json && json.data) {
       const data = parseStockData(json);
       stock._price = data.price;
       stock._changePct = data.changePct;
       stock._name = data.name || stock.name;
+      stock._prevClose = data.prevClose;
     }
 
-    // 获取周线数据（前复权，最近2根）
     const weekJson = await fetchAPI(API.kline(stock.code, 102, 2));
     if (weekJson && weekJson.data && weekJson.data.klines) {
       const klines = parseKlineData(weekJson);
       if (klines.length >= 2) {
-        const prevWeek = klines[klines.length - 2];
-        stock._weekChg = prevWeek.close > 0 ? ((klines[klines.length - 1].close - prevWeek.close) / prevWeek.close) * 100 : 0;
-      } else if (klines.length === 1) {
-        stock._weekChg = stock._changePct || 0;
-      }
+        const prev = klines[klines.length - 2];
+        stock._weekChg = prev.close > 0 ? ((klines[klines.length-1].close - prev.close) / prev.close) * 100 : 0;
+      } else if (klines.length === 1) stock._weekChg = stock._changePct || 0;
     }
+    stock._weekChg = stock._weekChg != null ? stock._weekChg : (stock._changePct || 0);
 
-    // 获取月线数据（前复权，最近2根）
     const monthJson = await fetchAPI(API.kline(stock.code, 103, 2));
     if (monthJson && monthJson.data && monthJson.data.klines) {
       const klines = parseKlineData(monthJson);
       if (klines.length >= 2) {
-        const prevMonth = klines[klines.length - 2];
-        stock._monthChg = prevMonth.close > 0 ? ((klines[klines.length - 1].close - prevMonth.close) / prevMonth.close) * 100 : 0;
-      } else if (klines.length === 1) {
-        stock._monthChg = stock._changePct || 0;
-      }
+        const prev = klines[klines.length - 2];
+        stock._monthChg = prev.close > 0 ? ((klines[klines.length-1].close - prev.close) / prev.close) * 100 : 0;
+      } else if (klines.length === 1) stock._monthChg = stock._changePct || 0;
     }
-
-    stock._weekChg = stock._weekChg != null ? stock._weekChg : (stock._changePct || 0);
     stock._monthChg = stock._monthChg != null ? stock._monthChg : (stock._changePct || 0);
+
+    // 计算市值
+    stock._shares = stock._shares || 0;
+    stock._marketValue = stock._price * stock._shares;
   }
 
   // 按评级排序
@@ -1061,6 +735,11 @@ async function updatePositionData() {
   });
   savePosStocks(stocks);
   renderPosList();
+  App.updateAccount(); // 同步更新仓位页
+}
+
+function getTotalMarketValue() {
+  return getPosStocks().reduce((sum, s) => sum + (s._marketValue || 0), 0);
 }
 
 function renderPosList() {
@@ -1068,23 +747,17 @@ function renderPosList() {
   const listEl = $('#posStockList');
   const emptyEl = $('#posEmpty');
   const summaryEl = $('#posSummary');
+  const totalMV = getTotalMarketValue();
 
   if (stocks.length === 0) {
-    listEl.innerHTML = '';
-    emptyEl.style.display = 'block';
-    summaryEl.textContent = '';
-    return;
+    listEl.innerHTML = ''; emptyEl.style.display = 'block'; summaryEl.textContent = ''; return;
   }
   emptyEl.style.display = 'none';
 
-  // 计算组合平均评级
-  const grades = stocks.map(s => {
-    const r = getRating(s._weekChg || 0, s._monthChg || 0);
-    return 'ABCDE'.indexOf(r.grade);
-  });
-  const avgGrade = Math.round(grades.reduce((a, b) => a + b, 0) / grades.length);
-  const avgLabel = ['A','B','C','D','E'][Math.min(avgGrade, 4)];
-  summaryEl.innerHTML = `共 <strong>${stocks.length}</strong> 只持仓 · 组合评级：<strong style="color:var(--gold)">${avgLabel} 级</strong>`;
+  const grades = stocks.map(s => 'ABCDE'.indexOf(getRating(s._weekChg||0, s._monthChg||0).grade));
+  const avgGrade = Math.round(grades.reduce((a,b)=>a+b,0) / grades.length);
+  const avgLabel = ['A','B','C','D','E'][Math.min(avgGrade,4)];
+  summaryEl.innerHTML = `共 <strong>${stocks.length}</strong> 只 · 组合评级 <strong style="color:var(--gold)">${avgLabel}级</strong> · 持仓市值 <strong style="color:var(--gold)">¥${fmtMoney(totalMV)}</strong>`;
 
   listEl.innerHTML = stocks.map((s, i) => {
     const weekChg = s._weekChg || 0;
@@ -1093,59 +766,83 @@ function renderPosList() {
     const price = s._price || '--';
     const change = s._changePct != null ? fmtPct(s._changePct) : '--';
     const changeCls = s._changePct >= 0 ? 'up' : 'down';
+    const mv = s._marketValue || 0;
+    const weight = totalMV > 0 ? ((mv / totalMV) * 100).toFixed(1) : '0';
+    const shares = s._shares || 0;
     return `
-    <div class="stock-item">
-      <div class="stock-info">
-        <div class="stock-name">${s._name || s.name} <span class="stock-code">${s.code}</span></div>
-        <div style="font-size:11px;margin-top:3px">
-          <span style="color:var(--text2)">周</span> <span class="${weekChg >= 0 ? 'up' : 'down'}">${fmtPct(weekChg)}</span>
-          <span style="margin-left:8px;color:var(--text2)">月</span> <span class="${monthChg >= 0 ? 'up' : 'down'}">${fmtPct(monthChg)}</span>
+    <div class="stock-item" style="flex-direction:column;align-items:stretch">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div class="stock-name">${s._name || s.name} <span class="stock-code">${s.code}</span></div>
+          <span class="badge ${rating.cls}">${rating.grade}·${rating.label}</span>
+        </div>
+        <div style="text-align:right">
+          <div class="price" style="font-size:18px;font-weight:700">${fmtMoney(price)}</div>
+          <div class="change ${changeCls}">${change}</div>
         </div>
       </div>
-      <div class="stock-price" style="text-align:right">
-        <span class="badge ${rating.cls}" style="margin-right:6px">${rating.grade}·${rating.label}</span>
-        <div class="price" style="font-size:16px">${fmtMoney(price)}</div>
-        <div class="change ${changeCls}">${change}</div>
+      <div class="pos-row">
+        <span style="font-size:11px;color:var(--text2);white-space:nowrap">持股(股)</span>
+        <input class="input" type="number" value="${shares || ''}" placeholder="数量"
+          onchange="App.updateShares(${i}, this.value)" style="font-size:12px;padding:6px 8px">
+        <span style="font-size:11px;color:var(--text2);white-space:nowrap">市值 ¥${fmtMoney(mv)}</span>
+        <span style="font-size:11px;color:var(--gold);white-space:nowrap">占比 ${weight}%</span>
+        <button class="btn btn-sm btn-danger" onclick="App.removePosStock(${i})">删</button>
       </div>
-      <button class="btn btn-sm btn-danger" onclick="App.removePosStock(${i})" style="margin-left:8px">删</button>
+      <div class="pos-stats">
+        <span>周 <span class="${weekChg>=0?'up':'down'}">${fmtPct(weekChg)}</span></span>
+        <span>月 <span class="${monthChg>=0?'up':'down'}">${fmtPct(monthChg)}</span></span>
+        <span>昨收 ${fmtMoney(s._prevClose || '--')}</span>
+      </div>
     </div>`;
   }).join('');
 }
 
-// ==================== 仓位模块 ====================
+function updateShares(index, value) {
+  const stocks = getPosStocks();
+  stocks[index]._shares = parseInt(value) || 0;
+  stocks[index]._marketValue = (stocks[index]._price || 0) * stocks[index]._shares;
+  savePosStocks(stocks);
+  renderPosList();
+  App.updateAccount();
+}
+
+// ==================== 仓位模块（整合持仓） ====================
 function updateAccount() {
-  const total = parseFloat($('#totalAsset').value) || 0;
-  const used = parseFloat($('#usedFund').value) || 0;
-  if (total <= 0) {
-    $('#availFund').textContent = '--';
-    $('#posRatio').textContent = '0%';
+  const cash = parseFloat($('#cashInput').value) || 0;
+  const holdingMV = getTotalMarketValue();
+  const totalAsset = cash + holdingMV;
+  const ratio = totalAsset > 0 ? Math.round((holdingMV / totalAsset) * 10000) / 100 : 0;
+
+  Store.set(STORAGE_KEY.cashBalance, cash);
+
+  $('#cashVal').textContent = '¥' + fmtMoney(cash);
+  $('#holdingVal').textContent = '¥' + fmtMoney(holdingMV);
+  $('#totalAssetVal').textContent = '¥' + fmtMoney(totalAsset);
+  $('#posRatioVal').textContent = ratio.toFixed(1) + '%';
+
+  if (totalAsset <= 0) {
     $('#ringPercent').textContent = '0%';
-    $('#safetyBadge').textContent = '--';
-    $('#safetyAdvice').textContent = '请输入账户信息';
-    Store.set(STORAGE_KEY.account, { total: 0, used: 0 });
+    $('#safetyBadge').innerHTML = '<span style="color:var(--text2)">请输入现金</span>';
+    $('#safetyAdvice').textContent = '输入现金余额后自动计算仓位安全等级';
     drawRing(0);
     return;
   }
 
-  const ratio = Math.round((used / total) * 10000) / 100;
-  const avail = total - used;
   const safety = getSafetyLevel(ratio);
-
-  $('#availFund').textContent = '¥' + fmtMoney(avail);
-  $('#posRatio').textContent = ratio.toFixed(1) + '%';
   $('#ringPercent').textContent = ratio.toFixed(0) + '%';
   $('#safetyBadge').innerHTML = `<span class="badge ${safety.cls}" style="font-size:14px;padding:6px 16px">${safety.level}</span>`;
   $('#safetyAdvice').textContent = safety.advice;
-  Store.set(STORAGE_KEY.account, { total, used });
   drawRing(ratio);
+
+  // 自动更新颜色
+  const ratioColor = ratio > 90 ? 'var(--danger)' : ratio > 80 ? 'var(--orange)' : ratio > 70 ? 'var(--blue)' : 'var(--safe)';
+  $('#posRatioVal').style.color = ratioColor;
 }
 
 function loadAccount() {
-  const data = Store.getObj(STORAGE_KEY.account);
-  if (data.total) {
-    $('#totalAsset').value = data.total;
-    $('#usedFund').value = data.used || 0;
-  }
+  const cash = Store.get(STORAGE_KEY.cashBalance);
+  if (cash) $('#cashInput').value = cash;
   updateAccount();
 }
 
@@ -1155,22 +852,12 @@ async function searchStock(from) {
   const resultEl = from === 'alert' ? $('#alertSearchResult') : $('#posSearchResult');
   const code = inputEl.value.trim();
 
-  if (!code || code.length < 1) {
-    toast('请输入股票代码');
-    return;
-  }
-
-  // 自动补全市场前缀
-  let fullCode = code;
-  if (!code.startsWith('0') && !code.startsWith('1') && !code.startsWith('6') && !code.startsWith('3') && !code.startsWith('2')) {
-    toast('请输入正确的股票代码（6位数字）');
-    return;
-  }
+  if (!code || code.length < 1) { toast('请输入股票代码'); return; }
 
   toast('搜索中...');
-  const json = await fetchAPI(API.stock(fullCode));
+  const json = await fetchAPI(API.stock(code));
   if (!json || !json.data) {
-    resultEl.innerHTML = '<div class="search-result" style="justify-content:center;color:var(--text2)">未找到该股票，请检查代码</div>';
+    resultEl.innerHTML = '<div class="search-result" style="justify-content:center;color:var(--text2)">未找到该股票，请检查代码（沪市6开头，深市0/2/3开头）</div>';
     return;
   }
   const data = parseStockData(json);
@@ -1179,24 +866,21 @@ async function searchStock(from) {
     return;
   }
 
-  data.code = fullCode;
+  data.code = code;
   resultEl.innerHTML = `
     <div class="search-result">
       <div>
-        <div style="font-weight:600;margin-bottom:2px">${data.name}</div>
-        <div style="font-size:11px;color:var(--text2)">${fullCode} · 现价 ${fmtMoney(data.price)}</div>
+        <div style="font-weight:600;margin-bottom:2px">${data.name} <span style="font-size:11px;color:var(--text2)">${code}</span></div>
+        <div style="font-size:11px;color:var(--text2)">现价 ${fmtMoney(data.price)} · 涨跌 ${fmtPct(data.changePct)}</div>
+        ${from === 'position' ? '<div style="font-size:11px;color:var(--gold);margin-top:2px">添加后可输入持股数量</div>' : ''}
       </div>
-      <button class="btn btn-sm" id="btnAdd_${from}_${fullCode}">添加</button>
+      <button class="btn btn-sm" id="btnAdd_${from}_${code}">添加</button>
     </div>
   `;
 
-  // 绑定添加按钮
-  document.getElementById(`btnAdd_${from}_${fullCode}`).onclick = () => {
-    if (from === 'alert') {
-      addAlertStock(fullCode, data);
-    } else {
-      addPositionStock(fullCode, data);
-    }
+  document.getElementById(`btnAdd_${from}_${code}`).onclick = () => {
+    if (from === 'alert') addAlertStock(code, data);
+    else addPositionStock(code, data);
     resultEl.innerHTML = '';
     inputEl.value = '';
   };
@@ -1204,47 +888,29 @@ async function searchStock(from) {
 
 function addAlertStock(code, data) {
   const stocks = getAlertStocks();
-  if (stocks.find(s => s.code === code)) {
-    toast('该股票已在监控列表中');
-    return;
-  }
+  if (stocks.find(s => s.code === code)) { toast('该股票已在监控列表中'); return; }
   stocks.push({
-    code,
-    name: data.name,
-    alertTypes: ['急拉', '急跌'], // 默认开启急拉急跌
-    monitoring: true,
-    _price: data.price,
-    _changePct: data.changePct,
-    _prevClose: data.prevClose,
-    limitUp: data.limitUp,
-    limitDown: data.limitDown,
-    addedAt: Date.now()
+    code, name: data.name, alertTypes: ['急拉', '急跌'], monitoring: true,
+    _price: data.price, _changePct: data.changePct, _prevClose: data.prevClose,
+    limitUp: data.limitUp, limitDown: data.limitDown, addedAt: Date.now()
   });
   saveAlertStocks(stocks);
   updatePriceSnapshot(code, data.price);
-  toast('已添加 ' + data.name + ' 到预警列表');
+  toast('已添加 ' + data.name);
   renderAlertList();
 }
 
 function addPositionStock(code, data) {
   const stocks = getPosStocks();
-  if (stocks.find(s => s.code === code)) {
-    toast('该股票已在持仓列表中');
-    return;
-  }
+  if (stocks.find(s => s.code === code)) { toast('该股票已在持仓列表中'); return; }
   stocks.push({
-    code,
-    name: data.name,
-    _price: data.price,
-    _changePct: data.changePct,
-    _weekChg: data.changePct,
-    _monthChg: data.changePct,
-    addedAt: Date.now()
+    code, name: data.name, _shares: 0, _marketValue: 0,
+    _price: data.price, _changePct: data.changePct, _prevClose: data.prevClose,
+    _weekChg: data.changePct, _monthChg: data.changePct, addedAt: Date.now()
   });
   savePosStocks(stocks);
-  toast('已添加 ' + data.name + ' 到持仓列表');
+  toast('已添加 ' + data.name + '，请输入持股数量');
   renderPosList();
-  // 异步更新周月数据
   updatePositionData();
 }
 
@@ -1266,18 +932,15 @@ function removePosStock(index) {
   savePosStocks(stocks);
   toast('已移除 ' + name);
   renderPosList();
+  App.updateAccount();
 }
 
 function toggleAlertType(index, type) {
   const stocks = getAlertStocks();
-  const stock = stocks[index];
-  if (!stock.alertTypes) stock.alertTypes = [];
-  const idx = stock.alertTypes.indexOf(type);
-  if (idx >= 0) {
-    stock.alertTypes.splice(idx, 1);
-  } else {
-    stock.alertTypes.push(type);
-  }
+  if (!stocks[index].alertTypes) stocks[index].alertTypes = [];
+  const idx = stocks[index].alertTypes.indexOf(type);
+  if (idx >= 0) stocks[index].alertTypes.splice(idx, 1);
+  else stocks[index].alertTypes.push(type);
   saveAlertStocks(stocks);
   renderAlertList();
 }
@@ -1285,16 +948,19 @@ function toggleAlertType(index, type) {
 function saveSendKey() {
   const key = $('#sendKeyInput').value.trim();
   Store.set(STORAGE_KEY.sendKey, key);
-  toast(key ? 'SendKey 已保存，预警将推送到微信' : 'SendKey 已清除');
+  if (key) {
+    $('#wechatStatus').innerHTML = '<span style="color:var(--down)">✅ 已绑定，预警将推送到微信</span>';
+    toast('SendKey 已保存，预警将推送到微信');
+  } else {
+    $('#wechatStatus').textContent = '未设置';
+    toast('SendKey 已清除');
+  }
 }
 
 // ==================== Tab 切换 ====================
 function switchTab(idx) {
-  // 更新内容区
   $$('.tab-content').forEach((el, i) => el.classList.toggle('active', i === idx));
-  // 更新底部导航
   $$('.nav-item').forEach((el, i) => el.classList.toggle('active', i === idx));
-  // 切换时刷新对应数据
   if (idx === 0) updateSentiment();
   if (idx === 1) renderAlertList();
   if (idx === 2) { renderPosList(); updatePositionData(); }
@@ -1303,58 +969,41 @@ function switchTab(idx) {
 
 // ==================== 初始化 ====================
 function init() {
-  // 加载 SendKey
   const savedKey = Store.get(STORAGE_KEY.sendKey);
-  if (savedKey) $('#sendKeyInput').value = savedKey;
+  if (savedKey) {
+    $('#sendKeyInput').value = savedKey;
+    $('#wechatStatus').innerHTML = '<span style="color:var(--down)">✅ 已绑定，预警将推送到微信</span>';
+  }
 
-  // 加载账户数据
   loadAccount();
-
-  // 加载预警记录
   renderAlertLog();
-
-  // 加载预警列表
   renderAlertList();
-  // 初始化价格快照
   const alertStocks = getAlertStocks();
-  alertStocks.forEach(s => {
-    if (!priceSnapshots[s.code]) priceSnapshots[s.code] = [];
-  });
-
-  // 加载持仓列表
+  alertStocks.forEach(s => { if (!priceSnapshots[s.code]) priceSnapshots[s.code] = []; });
   renderPosList();
 
-  // 立即获取大盘数据
   updateSentiment();
 
-  // 注册 Service Worker
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
 
-  // 定时任务
-  setInterval(updateSentiment, 5000); // 大盘每5秒
-  setInterval(monitorAlertStocks, 3000); // 预警每3秒
-  setInterval(updatePositionData, 60000); // 持仓每分钟刷新
+  setInterval(updateSentiment, 5000);
+  setInterval(monitorAlertStocks, 3000);
+  setInterval(updatePositionData, 60000);
 }
 
-// ==================== 全局 App 对象 ====================
 const App = {
-  switchTab,
-  searchStock,
-  addAlertStock,
-  addPositionStock,
-  removeAlertStock,
-  removePosStock,
-  toggleAlertType,
-  saveSendKey,
-  updateAccount,
-  updateSentiment,
-  updatePositionData
+  switchTab, searchStock, addAlertStock, addPositionStock,
+  removeAlertStock, removePosStock, toggleAlertType, saveSendKey,
+  updateAccount, updateSentiment, updatePositionData, updateShares
 };
 
-// 启动
 document.addEventListener('DOMContentLoaded', init);
+// 页面可见时刷新数据
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) { updateSentiment(); updatePositionData(); }
+});
 </script>
 </body>
 </html>
