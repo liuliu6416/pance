@@ -832,27 +832,39 @@ async function updateSentiment() {
 }
 
 let historyChartsLoaded = false;
+
+// 腾讯月度K线
+async function fetchTxKline(code, months) {
+  try {
+    const resp = await fetch(`https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param=${code},month,,,${months},qfq`);
+    const json = await resp.json();
+    const klines = json?.data?.[code]?.month || json?.data?.[code]?.qfqmonth || [];
+    return klines.map(k => ({
+      date: k[0].slice(5, 7),
+      close: parseFloat(k[2])
+    }));
+  } catch(e) { return []; }
+}
+
 async function updateHistoryCharts() {
   if (historyChartsLoaded) return;
   historyChartsLoaded = true;
 
   // 上证近3年月度
-  const shJson = await fetchAPI(`https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=1.000001&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61&klt=103&fqt=1&end=20500101&lmt=36`);
-  if (shJson && shJson.data && shJson.data.klines) {
-    const klines = parseKlineData(shJson);
-    const chartData = klines.map(k => ({
-      date: k.date.slice(5, 7),
+  const shKlines = await fetchTxKline('sh000001', 36);
+  if (shKlines.length > 0) {
+    const chartData = shKlines.map(k => ({
+      date: k.date,
       value: Math.round((60 + (k.close - 3000) / 100) * 10) / 10
     }));
     drawLineChart('#shChart', chartData, 60);
   }
 
   // 创业板近3年月度
-  const cyJson2 = await fetchAPI(`https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=0.399006&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61&klt=103&fqt=1&end=20500101&lmt=36`);
-  if (cyJson2 && cyJson2.data && cyJson2.data.klines) {
-    const klines = parseKlineData(cyJson2);
-    const chartData = klines.map(k => ({
-      date: k.date.slice(5, 7),
+  const cyKlines = await fetchTxKline('sz399006', 36);
+  if (cyKlines.length > 0) {
+    const chartData = cyKlines.map(k => ({
+      date: k.date,
       value: Math.round((60 + (k.close - 2500) / 100) * 10) / 10
     }));
     drawLineChart('#cyChart', chartData, 60);
