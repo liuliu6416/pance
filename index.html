@@ -333,15 +333,15 @@ body{
 const API = {
   index: 'https://push2.eastmoney.com/api/qt/stock/get?secid=1.000001&fields=f43,f44,f45,f46,f47,f48,f50,f57,f58,f60,f169,f170,f171',
   cyIndex: 'https://push2.eastmoney.com/api/qt/stock/get?secid=0.399006&fields=f43,f44,f45,f46,f47,f48,f50,f57,f58,f60,f169,f170,f171',
-  // 新浪 API 获取股票名称+价格
-  sina: (code) => {
+  // 腾讯 API 获取股票名称+实时价格
+  tx: (code) => {
     const prefix = /^[0-2]/.test(code) ? 'sz' : 'sh';
-    return `https://hq.sinajs.cn/list=${prefix}${code}`;
+    return `https://qt.gtimg.cn/q=${prefix}${code}`;
   },
-  // 东方财富 API 获取K线和周月数据
+  // 东方财富 API 获取涨跌幅/涨停跌停价
   stock: (code) => {
     const market = /^[0-2]/.test(code) ? '0' : '1';
-    return `https://push2.eastmoney.com/api/qt/stock/get?secid=${market}.${code}&fields=f43,f44,f45,f46,f47,f48,f50,f51,f52,f58,f60,f169,f170,f171`;
+    return `https://push2.eastmoney.com/api/qt/stock/get?secid=${market}.${code}&fields=f43,f51,f52,f58,f60,f169,f170,f171`;
   },
   kline: (code, klt, lmt) => {
     const market = /^[0-2]/.test(code) ? '0' : '1';
@@ -394,28 +394,28 @@ function parseIndexData(json) {
   };
 }
 
-// 新浪返回GBK编码，需用 TextDecoder 或直接取
-async function fetchSinaStock(code) {
+// 腾讯 API 返回GBK编码，用 TextDecoder 解析
+async function fetchTxStock(code) {
   try {
     const prefix = /^[0-2]/.test(code) ? 'sz' : 'sh';
-    const resp = await fetch(`https://hq.sinajs.cn/list=${prefix}${code}`, {
-      headers: { 'Referer': 'https://finance.sina.com.cn' }
-    });
+    const resp = await fetch(`https://qt.gtimg.cn/q=${prefix}${code}`);
     const buffer = await resp.arrayBuffer();
-    // 新浪用GBK编码
     const decoder = new TextDecoder('gbk');
     const text = decoder.decode(buffer);
-    // 格式: var hq_str_sh600519="名称,今开,昨收,现价,最高,最低,..."
+    // 格式: v_sh600519="1~名称~代码~现价~昨收~开盘~最高~最低~..."
+    // 字段索引: 0=市场,1=名称,2=代码,3=现价,4=昨收,5=开盘,33=最高,34=最低,32=涨跌幅
     const match = text.match(/"([^"]+)"/);
     if (!match) return null;
-    const parts = match[1].split(',');
+    const parts = match[1].split('~');
+    if (parts.length < 6) return null;
     return {
-      name: parts[0] || '--',
-      open: parseFloat(parts[1]) || 0,
-      prevClose: parseFloat(parts[2]) || 0,
+      name: parts[1] || '--',
       price: parseFloat(parts[3]) || 0,
-      high: parseFloat(parts[4]) || 0,
-      low: parseFloat(parts[5]) || 0
+      prevClose: parseFloat(parts[4]) || 0,
+      open: parseFloat(parts[5]) || 0,
+      high: parseFloat(parts[33]) || 0,
+      low: parseFloat(parts[34]) || 0,
+      changePct: parseFloat(parts[32]) || 0
     };
   } catch(e) { return null; }
 }
@@ -712,7 +712,7 @@ async function monitorAlertStocks() {
   for (const stock of stocks) {
     if (!stock.monitoring || !stock.alertTypes || stock.alertTypes.length === 0) continue;
     // 从新浪获取名称+价格
-    const sinaData = await fetchSinaStock(stock.code);
+    const sinaData = await fetchTxStock(stock.code);
     if (!sinaData) continue;
     const emJson = await fetchAPI(API.stock(stock.code));
     const emData = emJson ? parseStockData(emJson) : null;
@@ -790,7 +790,7 @@ async function updatePositionData() {
   if (stocks.length === 0) { renderPosList(); return; }
 
   for (const stock of stocks) {
-    const sinaData = await fetchSinaStock(stock.code);
+    const sinaData = await fetchTxStock(stock.code);
     if (sinaData) {
       stock._price = sinaData.price;
       stock._prevClose = sinaData.prevClose;
@@ -952,7 +952,7 @@ async function searchStock(from) {
 
   toast('搜索中...');
   // 从新浪拿名称和价格
-  const sinaData = await fetchSinaStock(code);
+  const sinaData = await fetchTxStock(code);
   if (!sinaData || !sinaData.name || sinaData.name === '--') {
     resultEl.innerHTML = '<div class="search-result" style="justify-content:center;color:var(--text2)">未找到该股票，请检查代码（沪市6开头，深市0/2/3开头）</div>';
     return;
@@ -1067,7 +1067,7 @@ async function repairStockNames() {
   let needsSave = false;
   for (const s of posStocks) {
     if (!s.name || s.name === '--') {
-      const sinaData = await fetchSinaStock(s.code);
+      const sinaData = await fetchTxStock(s.code);
       if (sinaData && sinaData.name && sinaData.name !== '--') {
         s.name = sinaData.name;
         needsSave = true;
@@ -1080,7 +1080,7 @@ async function repairStockNames() {
   let needsSave2 = false;
   for (const s of alertStocks) {
     if (!s.name || s.name === '--') {
-      const sinaData = await fetchSinaStock(s.code);
+      const sinaData = await fetchTxStock(s.code);
       if (sinaData && sinaData.name && sinaData.name !== '--') {
         s.name = sinaData.name;
         needsSave2 = true;
