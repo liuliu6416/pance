@@ -197,6 +197,14 @@ body{
       </div>
     </div>
     <div class="card">
+      <div class="card-header">📈 上证冰点趋势（90日）</div>
+      <canvas id="shChart" width="400" height="200" style="width:100%;height:200px"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-header">📈 创业板冰点趋势（90日）</div>
+      <canvas id="cyChart" width="400" height="200" style="width:100%;height:200px"></canvas>
+    </div>
+    <div class="card">
       <div class="card-header">📋 今日操作建议</div>
       <div style="font-size:14px;line-height:1.8;text-align:center;padding:8px 0" id="adviceText">
         炒股和呼吸一样简单，只要记住一句话就够了：低买高卖。
@@ -297,6 +305,10 @@ body{
       <div style="font-size:11px;color:var(--text2);margin-bottom:6px">
         📈 持仓市值自动从「持仓」页面同步（价格 × 数量）
       </div>
+    </div>
+    <div class="card">
+      <div class="card-header">📈 总资产走势</div>
+      <canvas id="assetChart" width="400" height="200" style="width:100%;height:200px"></canvas>
     </div>
     <div class="card">
       <div class="card-header">📊 仓位安全标准</div>
@@ -564,6 +576,123 @@ function getAdvices(score, changePct) {
   return advices;
 }
 
+// ==================== Canvas 折线图 ====================
+function drawLineChart(canvasId, data, baseLine) {
+  const canvas = $(canvasId);
+  if (!canvas) return;
+  const w = canvas.clientWidth;
+  if (w < 10) return;
+  const h = 200;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  ctx.scale(dpr, dpr);
+
+  const pad = { top: 20, right: 12, bottom: 30, left: 38 };
+  const pw = w - pad.left - pad.right;
+  const ph = h - pad.top - pad.bottom;
+
+  ctx.clearRect(0, 0, w, h);
+
+  if (!data || data.length < 2) {
+    ctx.fillStyle = '#8899aa';
+    ctx.font = '13px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('数据加载中...', w/2, h/2);
+    return;
+  }
+
+  const vals = data.map(d => d.value);
+  let min = Math.min(...vals), max = Math.max(...vals);
+  const range = max - min || 1;
+  min -= range * 0.1;
+  max += range * 0.1;
+
+  const xScale = (i) => pad.left + (i / (data.length - 1)) * pw;
+  const yScale = (v) => pad.top + ph - ((v - min) / (max - min)) * ph;
+
+  // 网格线
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.top + (ph / 4) * i;
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(w - pad.right, y); ctx.stroke();
+  }
+
+  // 基准线
+  if (baseLine != null) {
+    const by = yScale(baseLine);
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath(); ctx.moveTo(pad.left, by); ctx.lineTo(w - pad.right, by); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // 折线
+  ctx.strokeStyle = '#f0c040';
+  ctx.lineWidth = 2;
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  data.forEach((d, i) => {
+    const x = xScale(i), y = yScale(d.value);
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  // 渐变填充
+  const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + ph);
+  grad.addColorStop(0, 'rgba(240,192,64,0.15)');
+  grad.addColorStop(1, 'rgba(240,192,64,0)');
+  ctx.fillStyle = grad;
+  ctx.lineTo(w - pad.right, pad.top + ph);
+  ctx.lineTo(pad.left, pad.top + ph);
+  ctx.closePath();
+  ctx.fill();
+
+  // Y轴标签
+  ctx.fillStyle = '#8899aa';
+  ctx.font = '9px sans-serif';
+  ctx.textAlign = 'right';
+  for (let i = 0; i <= 4; i++) {
+    const v = min + (max - min) * (i / 4);
+    ctx.fillText(Math.round(v), pad.left - 6, yScale(v) + 3);
+  }
+
+  // X轴日期（显示部分）
+  ctx.textAlign = 'center';
+  const showCount = Math.min(6, data.length);
+  const step = Math.floor((data.length - 1) / (showCount - 1));
+  for (let i = 0; i < data.length; i += step) {
+    const d = data[i];
+    ctx.fillText(d.date || '', xScale(i), h - pad.bottom + 14);
+  }
+  // 最后一个一定显示
+  const last = data[data.length - 1];
+  ctx.fillText(last.date || '', xScale(data.length - 1), h - pad.bottom + 14);
+}
+
+// ==================== 声音提醒 ====================
+function playAlertSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    // 三连音提醒
+    [0, 0.15, 0.3].forEach((delay, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = i === 2 ? 1200 : 800;
+      osc.type = 'square';
+      gain.gain.setValueAtTime(0.08, ctx.currentTime + delay);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.12);
+      osc.start(ctx.currentTime + delay);
+      osc.stop(ctx.currentTime + delay + 0.12);
+    });
+  } catch(e) {}
+}
+
 function drawRing(percent) {
   const canvas = $('#ringCanvas');
   if (!canvas) return;
@@ -642,6 +771,37 @@ async function updateSentiment() {
     $('#cyIndex').textContent = fmtMoney(cyData.price);
     $('#cyChange').innerHTML = `<span style="color:${cyColor}">${fmtPct(cyData.changePct)}</span>`;
     drawGauge(cyClamped, '#gaugeCanvas2');
+  }
+
+  // 更新历史走势图（每5分钟拉一次，减少请求）
+  updateHistoryCharts();
+}
+
+let historyChartsLoaded = false;
+async function updateHistoryCharts() {
+  if (historyChartsLoaded) return;
+  historyChartsLoaded = true;
+
+  // 上证90日
+  const shJson = await fetchAPI(`https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=1.000001&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61&klt=101&fqt=1&end=20500101&lmt=90`);
+  if (shJson && shJson.data && shJson.data.klines) {
+    const klines = parseKlineData(shJson);
+    const chartData = klines.map(k => ({
+      date: k.date.slice(4, 6) + '/' + k.date.slice(6, 8),
+      value: Math.round((60 + (k.close - 3000) / 100) * 10) / 10
+    }));
+    drawLineChart('#shChart', chartData, 60);
+  }
+
+  // 创业板90日
+  const cyJson2 = await fetchAPI(`https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=0.399006&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61&klt=101&fqt=1&end=20500101&lmt=90`);
+  if (cyJson2 && cyJson2.data && cyJson2.data.klines) {
+    const klines = parseKlineData(cyJson2);
+    const chartData = klines.map(k => ({
+      date: k.date.slice(4, 6) + '/' + k.date.slice(6, 8),
+      value: Math.round((60 + (k.close - 2500) / 100) * 10) / 10
+    }));
+    drawLineChart('#cyChart', chartData, 60);
   }
 }
 
@@ -738,6 +898,7 @@ async function monitorAlertStocks() {
       toast(msg + '，' + detail);
       addAlertLog(stock, t.type + '预警', data.price);
       sendNotify('⚡ 盘策预警', msg + '\n' + detail);
+      playAlertSound();
     }
   }
   renderAlertList();
@@ -841,6 +1002,27 @@ function getTotalMarketValue() {
   return getPosStocks().reduce((sum, s) => sum + (s._marketValue || 0), 0);
 }
 
+function getTotalCost() {
+  return getPosStocks().reduce((sum, s) => sum + ((s._cost || 0) * (s._shares || 0)), 0);
+}
+
+function drawAssetChart() {
+  const history = getAssetHistory();
+  if (history.length < 2) {
+    const canvas = $('#assetChart');
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#8899aa';
+      ctx.font = '12px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('填写现金+持仓后自动记录', canvas.width/4, 100);
+    }
+    return;
+  }
+  drawLineChart('#assetChart', history, null);
+}
+
 function renderPosList() {
   const stocks = getPosStocks();
   const listEl = $('#posStockList');
@@ -868,6 +1050,12 @@ function renderPosList() {
     const mv = s._marketValue || 0;
     const weight = totalMV > 0 ? ((mv / totalMV) * 100).toFixed(1) : '0';
     const shares = s._shares || 0;
+    const cost = s._cost || 0;
+    // 盈亏计算
+    const profitAmt = cost > 0 && shares > 0 ? (price - cost) * shares : 0;
+    const profitPct = cost > 0 ? ((price - cost) / cost * 100) : 0;
+    const profitCls = profitAmt >= 0 ? 'up' : 'down';
+    const profitSign = profitAmt >= 0 ? '+' : '';
     return `
     <div class="stock-item" style="flex-direction:column;align-items:stretch">
       <div style="display:flex;align-items:center;justify-content:space-between">
@@ -881,11 +1069,17 @@ function renderPosList() {
         </div>
       </div>
       <div class="pos-row">
-        <span style="font-size:11px;color:var(--text2);white-space:nowrap">持股(股)</span>
+        <span style="font-size:10px;color:var(--text2)">成本</span>
+        <input class="input" type="number" value="${cost || ''}" placeholder="买入价"
+          onchange="App.updateCost(${i}, this.value)" style="font-size:11px;padding:5px 6px;width:70px;flex:0 0 70px">
+        <span style="font-size:10px;color:var(--text2)">持股</span>
         <input class="input" type="number" value="${shares || ''}" placeholder="数量"
-          onchange="App.updateShares(${i}, this.value)" style="font-size:12px;padding:6px 8px">
-        <span style="font-size:11px;color:var(--text2);white-space:nowrap">市值 ¥${fmtMoney(mv)}</span>
-        <span style="font-size:11px;color:var(--gold);white-space:nowrap">占比 ${weight}%</span>
+          onchange="App.updateShares(${i}, this.value)" style="font-size:11px;padding:5px 6px;width:65px;flex:0 0 65px">
+      </div>
+      <div class="pos-row">
+        <span style="font-size:10px;color:var(--text2)">市值 ¥${fmtMoney(mv)}</span>
+        <span style="font-size:10px;color:var(--gold)">占比 ${weight}%</span>
+        ${cost > 0 ? `<span style="font-size:10px" class="${profitCls}">盈亏 ${profitSign}¥${fmtMoney(Math.abs(profitAmt))} (${profitSign}${profitPct.toFixed(1)}%)</span>` : '<span style="font-size:10px;color:var(--text2)">输入成本算盈亏</span>'}
         <button class="btn btn-sm btn-danger" onclick="App.removePosStock(${i})">删</button>
       </div>
       <div class="pos-stats">
@@ -906,7 +1100,17 @@ function updateShares(index, value) {
   App.updateAccount();
 }
 
+function updateCost(index, value) {
+  const stocks = getPosStocks();
+  stocks[index]._cost = parseFloat(value) || 0;
+  savePosStocks(stocks);
+  renderPosList();
+}
+
 // ==================== 仓位模块（整合持仓） ====================
+function getAssetHistory() { return Store.getArr('pance_asset_history'); }
+function saveAssetHistory(list) { if (list.length > 90) list = list.slice(-90); Store.set('pance_asset_history', list); }
+
 function updateAccount() {
   const cash = parseFloat($('#cashInput').value) || 0;
   const holdingMV = getTotalMarketValue();
@@ -914,6 +1118,21 @@ function updateAccount() {
   const ratio = totalAsset > 0 ? Math.round((holdingMV / totalAsset) * 10000) / 100 : 0;
 
   Store.set(STORAGE_KEY.cashBalance, cash);
+
+  // 记录资产历史（每天存一个点）
+  if (totalAsset > 0) {
+    const history = getAssetHistory();
+    const today = new Date().toISOString().slice(5, 10);
+    const last = history[history.length - 1];
+    if (!last || last.date !== today) {
+      history.push({ date: today, value: Math.round(totalAsset) });
+      saveAssetHistory(history);
+    } else {
+      last.value = Math.round(totalAsset);
+      saveAssetHistory(history);
+    }
+    drawAssetChart();
+  }
 
   $('#cashVal').textContent = '¥' + fmtMoney(cash);
   $('#holdingVal').textContent = '¥' + fmtMoney(holdingMV);
@@ -1061,7 +1280,7 @@ function switchTab(idx) {
   if (idx === 0) updateSentiment();
   if (idx === 1) renderAlertList();
   if (idx === 2) { renderPosList(); updatePositionData(); }
-  if (idx === 3) updateAccount();
+  if (idx === 3) { updateAccount(); drawAssetChart(); }
 }
 
 // 判断是否A股交易时段
@@ -1113,6 +1332,7 @@ async function refreshStockNames() {
 // ==================== 初始化 ====================
 function init() {
   loadAccount();
+  drawAssetChart();
 
   // 检查通知权限
   checkNotify();
@@ -1143,7 +1363,8 @@ function init() {
 const App = {
   switchTab, searchStock, addAlertStock, addPositionStock,
   removeAlertStock, removePosStock, toggleAlertType,
-  updateAccount, updateSentiment, updatePositionData, updateShares,
+  updateAccount, updateSentiment, updatePositionData,
+  updateShares, updateCost,
   requestNotify
 };
 
