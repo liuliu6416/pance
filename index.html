@@ -196,18 +196,22 @@ body{
         </div>
       </div>
     </div>
+    <div style="text-align:center;padding:6px 16px 14px;font-size:12px;color:var(--text2);line-height:1.8">
+      📌 冰点指数越高，注意风险，分批止盈，控制仓位<br>
+      📌 冰点指数越低，耐住寂寞，企稳适时加仓，控制仓位
+    </div>
     <div class="card">
-      <div class="card-header">📈 上证冰点趋势（90日）</div>
+      <div class="card-header">📈 上证冰点趋势（近3年 · 月度）</div>
       <canvas id="shChart" width="400" height="200" style="width:100%;height:200px"></canvas>
     </div>
     <div class="card">
-      <div class="card-header">📈 创业板冰点趋势（90日）</div>
+      <div class="card-header">📈 创业板冰点趋势（近3年 · 月度）</div>
       <canvas id="cyChart" width="400" height="200" style="width:100%;height:200px"></canvas>
     </div>
     <div class="card">
       <div class="card-header">📋 今日操作建议</div>
-      <div style="font-size:14px;line-height:1.8;text-align:center;padding:8px 0" id="adviceText">
-        炒股和呼吸一样简单，只要记住一句话就够了：低买高卖。
+      <div style="font-size:15px;line-height:1.8;text-align:center;padding:8px 0;font-weight:600" id="adviceText">
+        低买高卖，分批止盈。
       </div>
     </div>
     <div class="card">
@@ -782,23 +786,23 @@ async function updateHistoryCharts() {
   if (historyChartsLoaded) return;
   historyChartsLoaded = true;
 
-  // 上证90日
-  const shJson = await fetchAPI(`https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=1.000001&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61&klt=101&fqt=1&end=20500101&lmt=90`);
+  // 上证近3年月度
+  const shJson = await fetchAPI(`https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=1.000001&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61&klt=103&fqt=1&end=20500101&lmt=36`);
   if (shJson && shJson.data && shJson.data.klines) {
     const klines = parseKlineData(shJson);
     const chartData = klines.map(k => ({
-      date: k.date.slice(4, 6) + '/' + k.date.slice(6, 8),
+      date: k.date.slice(0, 4) + '/' + k.date.slice(4, 6),
       value: Math.round((60 + (k.close - 3000) / 100) * 10) / 10
     }));
     drawLineChart('#shChart', chartData, 60);
   }
 
-  // 创业板90日
-  const cyJson2 = await fetchAPI(`https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=0.399006&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61&klt=101&fqt=1&end=20500101&lmt=90`);
+  // 创业板近3年月度
+  const cyJson2 = await fetchAPI(`https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=0.399006&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61&klt=103&fqt=1&end=20500101&lmt=36`);
   if (cyJson2 && cyJson2.data && cyJson2.data.klines) {
     const klines = parseKlineData(cyJson2);
     const chartData = klines.map(k => ({
-      date: k.date.slice(4, 6) + '/' + k.date.slice(6, 8),
+      date: k.date.slice(0, 4) + '/' + k.date.slice(4, 6),
       value: Math.round((60 + (k.close - 2500) / 100) * 10) / 10
     }));
     drawLineChart('#cyChart', chartData, 60);
