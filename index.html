@@ -368,8 +368,8 @@ body{
 <script>
 // ==================== 配置 ====================
 const API = {
-  index: 'https://push2.eastmoney.com/api/qt/stock/get?secid=1.000001&fields=f43,f44,f45,f46,f47,f48,f50,f57,f58,f60,f169,f170,f171',
-  cyIndex: 'https://push2.eastmoney.com/api/qt/stock/get?secid=0.399006&fields=f43,f44,f45,f46,f47,f48,f50,f57,f58,f60,f169,f170,f171',
+  // 腾讯 API 获取大盘指数
+  txIndex: (code) => `https://qt.gtimg.cn/q=${code}`,
   // 腾讯 API 获取股票名称+实时价格
   tx: (code) => {
     const prefix = /^[0-2]/.test(code) ? 'sz' : 'sh';
@@ -429,6 +429,29 @@ function parseIndexData(json) {
     high: d.f44 / 100, low: d.f45 / 100, prevClose: d.f60 / 100,
     change: d.f169 / 100, changePct: d.f170 / 100, volume: d.f47, amount: d.f48
   };
+}
+
+// 腾讯大盘指数解析
+async function fetchTxIndex(code) {
+  try {
+    const resp = await fetch(`https://qt.gtimg.cn/q=${code}`);
+    const buffer = await resp.arrayBuffer();
+    const decoder = new TextDecoder('gbk');
+    const text = decoder.decode(buffer);
+    const match = text.match(/"([^"]+)"/);
+    if (!match) return null;
+    const parts = match[1].split('~');
+    if (parts.length < 6) return null;
+    return {
+      name: parts[1] || '--',
+      price: parseFloat(parts[3]) || 0,
+      prevClose: parseFloat(parts[4]) || 0,
+      open: parseFloat(parts[5]) || 0,
+      high: parseFloat(parts[33]) || 0,
+      low: parseFloat(parts[34]) || 0,
+      changePct: parseFloat(parts[32]) || 0
+    };
+  } catch(e) { return null; }
 }
 
 // 腾讯 API 返回GBK编码，用 TextDecoder 解析
@@ -761,22 +784,21 @@ function getSafetyLevel(pct) {
 let indexData = null;
 
 async function updateSentiment() {
-  // 上证指数
-  const json = await fetchAPI(API.index);
-  if (json && json.data) {
-    indexData = parseIndexData(json);
-    const score = 60 + (indexData.price - 3000) / 100;
+  // 上证指数（腾讯API）
+  const shData = await fetchTxIndex('sh000001');
+  if (shData) {
+    const score = 60 + (shData.price - 3000) / 100;
     const clamped = Math.round(Math.max(0, Math.min(100, score)) * 10) / 10;
     const label = getSentimentLabel(clamped);
-    const changeColor = indexData.changePct >= 0 ? 'var(--up)' : 'var(--down)';
+    const changeColor = shData.changePct >= 0 ? 'var(--up)' : 'var(--down)';
 
     $('#scoreNum').textContent = clamped;
     $('#scoreNum').style.color = label.color;
     $('#scoreLabel').textContent = label.text;
     $('#scoreLabel').style.background = label.color + '22';
     $('#scoreLabel').style.color = label.color;
-    $('#shIndex').textContent = fmtMoney(indexData.price);
-    $('#shChange').innerHTML = `<span style="color:${changeColor}">${fmtPct(indexData.changePct)}</span>`;
+    $('#shIndex').textContent = fmtMoney(shData.price);
+    $('#shChange').innerHTML = `<span style="color:${changeColor}">${fmtPct(shData.changePct)}</span>`;
     $('#updateTime').textContent = '更新于 ' + new Date().toLocaleTimeString();
     const status = getTradingStatus();
     const dotCls = status.cls === 'pulse' ? 'dot' : '';
@@ -787,10 +809,9 @@ async function updateSentiment() {
     $('#statusBar').innerHTML = '<span class="dot" style="background:var(--orange)"></span>数据异常';
   }
 
-  // 创业板指数
-  const cyJson = await fetchAPI(API.cyIndex);
-  if (cyJson && cyJson.data) {
-    const cyData = parseIndexData(cyJson);
+  // 创业板指数（腾讯API）
+  const cyData = await fetchTxIndex('sz399006');
+  if (cyData) {
     const cyScore = 60 + (cyData.price - 2500) / 100;
     const cyClamped = Math.round(Math.max(0, Math.min(100, cyScore)) * 10) / 10;
     const cyLabel = getSentimentLabel(cyClamped);
@@ -806,7 +827,7 @@ async function updateSentiment() {
     drawGauge(cyClamped, '#gaugeCanvas2');
   }
 
-  // 更新历史走势图（每5分钟拉一次，减少请求）
+  // 更新历史走势图
   updateHistoryCharts();
 }
 
