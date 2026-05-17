@@ -1,8 +1,9 @@
 {
-  "name": "盘策 - 炒股助手",
-  "short_name": "盘策",
+  "name": "大盘温度计",
+  "short_name": "大盘温度计",
   "description": "市场情绪风向标、个股异动预警、持仓强弱评级、仓位安全等级",
   "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0f0f1a",
@@ -17,12 +18,6 @@
       "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
-    },
-    {
-      "src": "icon.svg",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
     }
   ]
 }
