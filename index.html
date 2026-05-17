@@ -24,6 +24,7 @@
   --nav-bg: var(--nav-bg);
   --input-bg: rgba(255,255,255,0.06);
   --input-border: rgba(255,255,255,0.1);
+  --input-placeholder: rgba(255,255,255,0.25);
   --modal-bg: #1a1a2e;
   --up: #ff4757;
   --down: #2ed573;
@@ -43,8 +44,9 @@
   --text2: #667788;
   --border: rgba(0,0,0,0.06);
   --nav-bg: rgba(245,245,248,0.97);
-  --input-bg: rgba(0,0,0,0.04);
-  --input-border: rgba(0,0,0,0.1);
+  --input-bg: rgba(0,0,0,0.06);
+  --input-border: rgba(0,0,0,0.18);
+  --input-placeholder: rgba(0,0,0,0.35);
   --modal-bg: #ffffff;
 }
 *{margin:0;padding:0;box-sizing:border-box}
@@ -110,7 +112,7 @@ body{
 .input-row{display:flex;gap:10px;margin-bottom:12px}
 .input{flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--text);padding:11px 14px;border-radius:10px;font-size:14px;outline:none;transition:border 0.2s}
 .input:focus{border-color:var(--gold)}
-.input::placeholder{color:rgba(255,255,255,0.25)}
+.input::placeholder{color:var(--input-placeholder)}
 .input-small{flex:0 0 90px;width:90px}
 .btn{background:var(--gold);color:#1a1a2e;border:none;padding:11px 18px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;transition:opacity 0.2s;letter-spacing:0.5px}
 .btn:active{opacity:0.75}
