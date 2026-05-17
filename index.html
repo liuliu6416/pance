@@ -44,9 +44,9 @@
   --text2: #667788;
   --border: rgba(0,0,0,0.06);
   --nav-bg: rgba(245,245,248,0.97);
-  --input-bg: rgba(0,0,0,0.13);
+  --input-bg: rgba(0,0,0,0.18);
   --input-border: #d4a830;
-  --input-placeholder: rgba(0,0,0,0.4);
+  --input-placeholder: rgba(0,0,0,0.5);
   --modal-bg: #ffffff;
 }
 *{margin:0;padding:0;box-sizing:border-box}
@@ -110,7 +110,7 @@ body{
 .index-info{text-align:center;margin-top:12px;font-size:14px;color:var(--text2)}
 .index-info strong{color:var(--text);font-size:18px;margin:0 6px}
 .input-row{display:flex;gap:10px;margin-bottom:12px}
-.input{flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--text);padding:11px 14px;border-radius:10px;font-size:14px;outline:none;transition:border 0.2s}
+.input{flex:1;background:var(--input-bg);border:2px solid var(--input-border);color:var(--text);padding:11px 14px;border-radius:10px;font-size:14px;outline:none;transition:border 0.2s}
 .input:focus{border-color:var(--gold)}
 .input::placeholder{color:var(--input-placeholder)}
 .input-small{flex:0 0 90px;width:90px}
