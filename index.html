@@ -282,50 +282,36 @@ body{
     </div>
   </div>
 
-  <!-- Tab 1: 个股异动预警 -->
-  <div class="tab-content" id="tab-alerts">
+  <!-- Tab 1: 持仓预警 -->
+  <div class="tab-content" id="tab-position">
     <div class="card" style="margin-bottom:8px">
       <div style="display:flex;align-items:center;justify-content:space-between">
-        <span style="font-size:13px;font-weight:600">🔔 通知状态</span>
-        <span id="notifyStatus" style="font-size:11px;color:var(--orange)">未授权</span>
+        <span style="font-size:13px;font-weight:600">🔔 预警通知</span>
+        <span id="notifyStatus" style="font-size:11px;color:var(--orange)">未开启</span>
       </div>
       <div style="font-size:11px;color:var(--text2);margin-top:4px">
-        预警触发时自动弹出系统通知。点击右侧按钮开启。
+        持仓个股默认监控涨停/跌停/急拉2%/急跌2%，触发后推送通知
       </div>
-      <button class="btn btn-sm btn-outline" onclick="App.requestNotify()" style="margin-top:8px" id="notifyBtn">开启通知</button>
+      <button class="btn btn-sm btn-outline" onclick="App.requestNotify()" style="margin-top:8px" id="notifyBtn">开启系统通知</button>
     </div>
     <div class="input-row">
-      <input class="input" id="alertSearchInput" placeholder="输入股票代码，如 600519" autocomplete="off">
-      <button class="btn" onclick="App.searchStock('alert')">搜索</button>
-    </div>
-    <div id="alertSearchResult"></div>
-    <div id="alertStockList"></div>
-    <div id="alertEmpty" class="empty-state">
-      <div class="empty-icon">⚡</div>
-      <div class="empty-text">暂无监控股票<br>上方搜索代码添加<br>支持涨停/跌停/急拉/急跌四种预警</div>
-    </div>
-    <div class="card" style="margin-top:12px" id="alertLogCard">
-      <div class="card-header">📋 预警记录</div>
-      <div class="alert-log" id="alertLog"><span style="color:var(--text2)">暂无预警记录</span></div>
-    </div>
-  </div>
-
-  <!-- Tab 2: 持仓强弱评级 -->
-  <div class="tab-content" id="tab-position">
-    <div class="input-row">
-      <input class="input" id="posSearchInput" placeholder="输入股票代码，如 000001" autocomplete="off">
-      <button class="btn" onclick="App.searchStock('position')">添加</button>
+      <input class="input" id="posSearchInput" placeholder="输入股票代码，如 600519" autocomplete="off">
+      <button class="btn" onclick="App.searchStock()">搜索添加</button>
     </div>
     <div id="posSearchResult"></div>
     <div style="font-size:12px;color:var(--text2);margin-bottom:12px" id="posSummary"></div>
     <div id="posStockList"></div>
     <div id="posEmpty" class="empty-state">
       <div class="empty-icon">📈</div>
-      <div class="empty-text">暂无持仓股票<br>上方搜索代码添加<br>添加后输入持股数量即可分析</div>
+      <div class="empty-text">暂无持仓股票<br>上方搜索代码添加<br>默认开启涨停/跌停/急拉/急跌预警</div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <div class="card-header">📋 预警记录</div>
+      <div class="alert-log" id="alertLog"><span style="color:var(--text2)">暂无预警记录</span></div>
     </div>
   </div>
 
-  <!-- Tab 3: 仓位安全 -->
+  <!-- Tab 2: 仓位安全 -->
   <div class="tab-content" id="tab-account">
     <div class="card" style="text-align:center">
       <div class="ring-wrap">
@@ -389,12 +375,9 @@ body{
       <span class="nav-icon">🧊</span><span class="nav-label">冰点</span>
     </div>
     <div class="nav-item" data-tab="1" onclick="App.switchTab(1)">
-      <span class="nav-icon">⚡</span><span class="nav-label">预警</span>
+      <span class="nav-icon">📈</span><span class="nav-label">持仓预警</span>
     </div>
     <div class="nav-item" data-tab="2" onclick="App.switchTab(2)">
-      <span class="nav-icon">📈</span><span class="nav-label">持仓</span>
-    </div>
-    <div class="nav-item" data-tab="3" onclick="App.switchTab(3)">
       <span class="nav-icon">🛡️</span><span class="nav-label">仓位</span>
     </div>
   </nav>
@@ -434,12 +417,11 @@ const API = {
   }
 };
 const STORAGE_KEY = {
-  alertStocks: 'pance_alert_stocks',
   positionStocks: 'pance_position_stocks',
   cashBalance: 'pance_cash',
   alertLog: 'pance_alert_log'
 };
-const TABS = ['sentiment','alerts','position','account'];
+const TABS = ['sentiment','position','account'];
 
 // ==================== 工具函数 ====================
 const $ = (s) => document.querySelector(s);
@@ -924,8 +906,6 @@ const priceSnapshots = {};
 const lastAlertTime = {};
 const ALERT_COOLDOWN = 120000;
 
-function getAlertStocks() { return Store.getArr(STORAGE_KEY.alertStocks); }
-function saveAlertStocks(list) { Store.set(STORAGE_KEY.alertStocks, list); }
 function getAlertLogs() { return Store.getArr(STORAGE_KEY.alertLog); }
 function saveAlertLogs(list) { if (list.length > 50) list = list.slice(-50); Store.set(STORAGE_KEY.alertLog, list); }
 
@@ -984,10 +964,10 @@ function checkAlerts(stock, currentPrice) {
   return triggers;
 }
 
-async function monitorAlertStocks() {
-  const stocks = getAlertStocks();
+async function monitorPositionAlerts() {
+  const stocks = getPosStocks();
   for (const stock of stocks) {
-    if (!stock.monitoring || !stock.alertTypes || stock.alertTypes.length === 0) continue;
+    if (!stock.alertTypes || stock.alertTypes.length === 0) continue;
     // 从新浪获取名称+价格
     const sinaData = await fetchTxStock(stock.code);
     if (!sinaData) continue;
@@ -1016,42 +996,10 @@ async function monitorAlertStocks() {
       playAlertSound();
     }
   }
-  renderAlertList();
+  renderPosList();
 }
 
-function renderAlertList() {
-  const stocks = getAlertStocks();
-  const listEl = $('#alertStockList');
-  const emptyEl = $('#alertEmpty');
-  if (stocks.length === 0) { listEl.innerHTML = ''; emptyEl.style.display = 'block'; return; }
-  emptyEl.style.display = 'none';
-
-  listEl.innerHTML = stocks.map((s, i) => {
-    const price = s._price || '--';
-    const change = s._changePct != null ? fmtPct(s._changePct) : '--';
-    const changeCls = s._changePct >= 0 ? 'up' : 'down';
-    const types = ['涨停','跌停','急拉','急跌'];
-    return `
-    <div class="stock-item" style="flex-wrap:wrap">
-      <div class="stock-info" style="flex:1;min-width:60%">
-        <div class="stock-name">${s._name || s.name} · <span class="stock-code">${s.code}</span></div>
-        <div class="toggle-row" style="margin-top:6px">
-          ${types.map(t => {
-            const on = s.alertTypes && s.alertTypes.includes(t);
-            return `<span class="toggle-chip ${on?'on':''}" onclick="App.toggleAlertType(${i},'${t}')">${t}</span>`;
-          }).join('')}
-        </div>
-      </div>
-      <div class="stock-price" style="min-width:80px;text-align:right">
-        <div class="price">${fmtMoney(price)}</div>
-        <div class="change ${changeCls}">${change}</div>
-      </div>
-      <button class="btn btn-sm btn-danger" onclick="App.removeAlertStock(${i})" style="margin-left:8px">删</button>
-    </div>`;
-  }).join('');
-}
-
-// ==================== 持仓模块（含数量、市值、占比） ====================
+// ==================== 持仓模块（含预警、数量、市值、占比） ====================
 function getPosStocks() { return Store.getArr(STORAGE_KEY.positionStocks); }
 function savePosStocks(list) { Store.set(STORAGE_KEY.positionStocks, list); }
 
@@ -1188,6 +1136,12 @@ function renderPosList() {
         <div>
           <div class="stock-name">${s._name || s.name} · <span class="stock-code">${s.code}</span></div>
           <span class="badge ${rating.cls}">${rating.grade}·${rating.label}</span>
+          <div class="toggle-row" style="margin-top:4px">
+            ${['涨停','跌停','急拉','急跌'].map(t => {
+              const on = s.alertTypes && s.alertTypes.includes(t);
+              return `<span class="toggle-chip ${on?'on':''}" onclick="App.togglePosAlertType(${i},'${t}')">${t}</span>`;
+            }).join('')}
+          </div>
         </div>
         <div style="text-align:right">
           <div class="price" style="font-size:18px;font-weight:700">${fmtMoney(price)}</div>
@@ -1291,31 +1245,28 @@ function loadAccount() {
 }
 
 // ==================== 搜索股票 ====================
-async function searchStock(from) {
-  const inputEl = from === 'alert' ? $('#alertSearchInput') : $('#posSearchInput');
-  const resultEl = from === 'alert' ? $('#alertSearchResult') : $('#posSearchResult');
+async function searchStock() {
+  const inputEl = $('#posSearchInput');
+  const resultEl = $('#posSearchResult');
   const code = inputEl.value.trim();
 
   if (!code || code.length < 1) { toast('请输入股票代码'); return; }
 
   toast('搜索中...');
-  // 从新浪拿名称和价格
-  const sinaData = await fetchTxStock(code);
-  if (!sinaData || !sinaData.name || sinaData.name === '--') {
+  const txData = await fetchTxStock(code);
+  if (!txData || !txData.name || txData.name === '--') {
     resultEl.innerHTML = '<div class="search-result" style="justify-content:center;color:var(--text2)">未找到该股票，请检查代码（沪市6开头，深市0/2/3开头）</div>';
     return;
   }
-  // 从东方财富拿涨跌幅和限制价
   const emJson = await fetchAPI(API.stock(code));
   const emData = emJson ? parseStockData(emJson) : null;
 
   const data = {
     code,
-    name: sinaData.name,
-    price: sinaData.price,
-    prevClose: sinaData.prevClose,
-    change: emData ? emData.change : (sinaData.price - sinaData.prevClose),
-    changePct: emData ? emData.changePct : ((sinaData.price - sinaData.prevClose) / sinaData.prevClose * 100),
+    name: txData.name,
+    price: txData.price,
+    prevClose: txData.prevClose,
+    changePct: emData ? emData.changePct : ((txData.price - txData.prevClose) / txData.prevClose * 100),
     limitUp: emData ? emData.limitUp : null,
     limitDown: emData ? emData.limitDown : null
   };
@@ -1325,32 +1276,17 @@ async function searchStock(from) {
       <div>
         <div style="font-weight:600;margin-bottom:2px">${data.name} · <span style="color:var(--gold)">${code}</span></div>
         <div style="font-size:11px;color:var(--text2)">现价 ${fmtMoney(data.price)} · 涨跌 ${fmtPct(data.changePct)}</div>
-        ${from === 'position' ? '<div style="font-size:11px;color:var(--gold);margin-top:2px">添加后可输入持股数量</div>' : ''}
+        <div style="font-size:11px;color:var(--gold);margin-top:2px">添加后默认开启四类预警</div>
       </div>
-      <button class="btn btn-sm" id="btnAdd_${from}_${code}">添加</button>
+      <button class="btn btn-sm" id="btnAddPos">添加</button>
     </div>
   `;
-
-  document.getElementById(`btnAdd_${from}_${code}`).onclick = () => {
-    if (from === 'alert') addAlertStock(code, data);
-    else addPositionStock(code, data);
+  window._searchData = data;
+  $('#btnAddPos').onclick = () => {
+    addPositionStock(code, data);
     resultEl.innerHTML = '';
     inputEl.value = '';
   };
-}
-
-function addAlertStock(code, data) {
-  const stocks = getAlertStocks();
-  if (stocks.find(s => s.code === code)) { toast('该股票已在监控列表中'); return; }
-  stocks.push({
-    code, name: data.name, alertTypes: ['急拉', '急跌'], monitoring: true,
-    _price: data.price, _changePct: data.changePct, _prevClose: data.prevClose,
-    limitUp: data.limitUp, limitDown: data.limitDown, addedAt: Date.now()
-  });
-  saveAlertStocks(stocks);
-  updatePriceSnapshot(code, data.price);
-  toast('已添加 ' + data.name);
-  renderAlertList();
 }
 
 function addPositionStock(code, data) {
@@ -1359,43 +1295,36 @@ function addPositionStock(code, data) {
   stocks.push({
     code, name: data.name, _shares: 0, _marketValue: 0,
     _price: data.price, _changePct: data.changePct, _prevClose: data.prevClose,
-    _weekChg: data.changePct, _monthChg: data.changePct, addedAt: Date.now()
+    _weekChg: data.changePct, _monthChg: data.changePct, addedAt: Date.now(),
+    alertTypes: ['涨停', '跌停', '急拉', '急跌'], monitoring: true
   });
   savePosStocks(stocks);
-  toast('已添加 ' + data.name + '，请输入持股数量');
+  if (!priceSnapshots[code]) priceSnapshots[code] = [];
+  toast('已添加 ' + data.name + '，默认开启四类预警');
   renderPosList();
   updatePositionData();
-}
-
-function removeAlertStock(index) {
-  const stocks = getAlertStocks();
-  const name = stocks[index].name;
-  const code = stocks[index].code;
-  stocks.splice(index, 1);
-  saveAlertStocks(stocks);
-  delete priceSnapshots[code];
-  toast('已移除 ' + name);
-  renderAlertList();
 }
 
 function removePosStock(index) {
   const stocks = getPosStocks();
   const name = stocks[index].name;
+  const code = stocks[index].code;
   stocks.splice(index, 1);
   savePosStocks(stocks);
+  delete priceSnapshots[code];
   toast('已移除 ' + name);
   renderPosList();
   App.updateAccount();
 }
 
-function toggleAlertType(index, type) {
-  const stocks = getAlertStocks();
+function togglePosAlertType(index, type) {
+  const stocks = getPosStocks();
   if (!stocks[index].alertTypes) stocks[index].alertTypes = [];
   const idx = stocks[index].alertTypes.indexOf(type);
   if (idx >= 0) stocks[index].alertTypes.splice(idx, 1);
   else stocks[index].alertTypes.push(type);
-  saveAlertStocks(stocks);
-  renderAlertList();
+  savePosStocks(stocks);
+  renderPosList();
 }
 
 
@@ -1404,9 +1333,8 @@ function switchTab(idx) {
   $$('.tab-content').forEach((el, i) => el.classList.toggle('active', i === idx));
   $$('.nav-item').forEach((el, i) => el.classList.toggle('active', i === idx));
   if (idx === 0) updateSentiment();
-  if (idx === 1) renderAlertList();
-  if (idx === 2) { renderPosList(); updatePositionData(); }
-  if (idx === 3) { updateAccount(); drawAssetChart(); }
+  if (idx === 1) { renderPosList(); updatePositionData(); }
+  if (idx === 2) { updateAccount(); drawAssetChart(); }
 }
 
 // 判断是否A股交易时段
@@ -1556,16 +1484,12 @@ function init() {
   checkNotify();
 
   // 每次打开强制刷新企业名称
-  refreshStockNames().then(() => {
-    renderAlertList();
-    renderPosList();
-  });
+  refreshStockNames().then(() => { renderPosList(); });
 
   renderAlertLog();
-  renderAlertList();
-  const alertStocks = getAlertStocks();
-  alertStocks.forEach(s => { if (!priceSnapshots[s.code]) priceSnapshots[s.code] = []; });
   renderPosList();
+  const posStocks = getPosStocks();
+  posStocks.forEach(s => { if (!priceSnapshots[s.code]) priceSnapshots[s.code] = []; });
 
   updateSentiment();
 
@@ -1603,13 +1527,13 @@ function init() {
   });
 
   setInterval(updateSentiment, 5000);
-  setInterval(monitorAlertStocks, 3000);
+  setInterval(monitorPositionAlerts, 3000);
   setInterval(updatePositionData, 60000);
 }
 
 const App = {
-  switchTab, searchStock, addAlertStock, addPositionStock,
-  removeAlertStock, removePosStock, toggleAlertType,
+  switchTab, searchStock, addPositionStock,
+  removePosStock, togglePosAlertType,
   updateAccount, updateSentiment, updatePositionData,
   updateShares, updateCost,
   requestNotify, toggleTheme, refreshData, openNotify, closeNotify
