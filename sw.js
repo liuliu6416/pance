@@ -1,4 +1,4 @@
-const VERSION = '11';
+const VERSION = '12';
 const CACHE = 'pance-v' + VERSION;
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
