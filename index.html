@@ -1480,7 +1480,7 @@ function addNotification(type, title, detail) {
 }
 
 function updateNotifyBadge() {
-  const count = getNotifications().length;
+  const count = getNotifications().filter((n) => !n.read).length;
   const badge = $('#notifyBadge');
   if (count > 0) {
     badge.style.display = 'flex';
@@ -1512,8 +1512,14 @@ function renderNotifyList() {
 function openNotify() {
   $('#notifyPanel').classList.add('show');
   $('#notifyOverlay').classList.add('show');
+  // 标记所有通知为已读
+  const list = getNotifications();
+  let changed = false;
+  list.forEach((n) => { if (!n.read) { n.read = true; changed = true; } });
+  if (changed) saveNotifications(list);
+  // 清除角标
+  $('#notifyBadge').style.display = 'none';
   renderNotifyList();
-  updateNotifyBadge();
 }
 function closeNotify() {
   $('#notifyPanel').classList.remove('show');
@@ -1521,11 +1527,17 @@ function closeNotify() {
 }
 
 function doUpdate() {
-  navigator.serviceWorker.getRegistration().then((reg) => {
-    if (reg && reg.waiting) reg.waiting.postMessage('SKIP_WAITING');
+  navigator.serviceWorker.getRegistrations().then((regs) => {
+    regs.forEach((reg) => {
+      if (reg.waiting) reg.waiting.postMessage('SKIP_WAITING');
+    });
+  });
+  // 强制刷新到最新版本
+  caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k)))).then(() => {
     window.location.reload();
   });
 }
+window.doUpdate = doUpdate;
 async function refreshData() {
   toast('刷新中...');
   historyChartsLoaded = false;
