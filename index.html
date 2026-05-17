@@ -375,19 +375,21 @@ body{
     <div id="loginBox">
       <div class="card" style="text-align:center">
         <div style="font-size:48px;margin-bottom:12px">👤</div>
-        <div style="font-size:18px;font-weight:700;margin-bottom:20px">登录账户</div>
+        <div style="font-size:18px;font-weight:700;margin-bottom:20px">手机号登录</div>
         <div style="margin-bottom:12px">
-          <input class="input" id="phoneInput" type="tel" placeholder="手机号码" style="width:100%;text-align:center;font-size:16px" maxlength="11">
+          <input class="input" id="phoneInput" type="tel" placeholder="输入手机号码" style="width:100%;text-align:center;font-size:16px" maxlength="11">
         </div>
-        <div style="margin-bottom:12px">
-          <input class="input" id="pwdInput" type="password" placeholder="设置/输入密码" style="width:100%;text-align:center;font-size:16px" maxlength="20">
+        <div id="codeSection" style="display:none;margin-bottom:12px">
+          <div style="font-size:11px;color:var(--text2);margin-bottom:6px">验证码已发送至 <strong id="sentPhone"></strong></div>
+          <div class="input-row">
+            <input class="input" id="codeInput" type="tel" placeholder="输入验证码" style="text-align:center;font-size:16px" maxlength="6">
+            <button class="btn btn-sm btn-outline" id="resendBtn" onclick="App.sendCode()" style="white-space:nowrap">重新发送</button>
+          </div>
         </div>
-        <div style="display:flex;gap:10px">
-          <button class="btn" onclick="App.doLogin()" style="flex:1">登录</button>
-          <button class="btn btn-outline" onclick="App.doRegister()">注册</button>
-        </div>
+        <button class="btn" onclick="App.sendCode()" id="sendCodeBtn" style="width:100%">获取验证码</button>
+        <button class="btn" onclick="App.verifyCode()" id="verifyBtn" style="width:100%;display:none">验证登录</button>
         <div style="font-size:10px;color:var(--text2);margin-top:12px">
-          首次使用请先注册，同一手机号可在其他设备登录同步数据
+          首次自动注册，同一手机号可跨设备云端同步数据
         </div>
       </div>
     </div>
@@ -1669,14 +1671,45 @@ function saveCashNS(v) {
   autoCloudSync();
 }
 
-async function doLogin() {
+let _currentCode = '';
+let _codePhone = '';
+let _codeTimer = 0;
+
+function sendCode() {
   const phone = $('#phoneInput').value.trim();
-  const pwd = $('#pwdInput').value.trim();
   if (!phone || phone.length !== 11) { toast('请输入正确的11位手机号'); return; }
-  if (!pwd) { toast('请输入密码'); return; }
-  const users = getUsers();
-  if (!users[phone]) { toast('该手机号未注册，请先注册'); return; }
-  if (users[phone] !== pwd) { toast('密码错误'); return; }
+  // 生成6位验证码
+  _currentCode = String(Math.floor(100000 + Math.random() * 900000));
+  _codePhone = phone;
+  // 显示验证码（实际接入短信服务商后这里调用API发送）
+  toast('验证码：' + _currentCode + '（模拟短信，实际接入服务商后发到手机）');
+  addNotification('system', '登录验证码', '手机号 ' + phone + ' 的验证码：' + _currentCode);
+  $('#sentPhone').textContent = phone;
+  $('#codeSection').style.display = 'block';
+  $('#verifyBtn').style.display = 'block';
+  $('#sendCodeBtn').style.display = 'none';
+  // 60秒倒计时
+  let sec = 60;
+  $('#resendBtn').textContent = sec + 's';
+  $('#resendBtn').disabled = true;
+  clearInterval(_codeTimer);
+  _codeTimer = setInterval(() => {
+    sec--;
+    if (sec <= 0) {
+      clearInterval(_codeTimer);
+      $('#resendBtn').textContent = '重新发送';
+      $('#resendBtn').disabled = false;
+    } else {
+      $('#resendBtn').textContent = sec + 's';
+    }
+  }, 1000);
+}
+
+async function verifyCode() {
+  const code = $('#codeInput').value.trim();
+  if (code !== _currentCode) { toast('验证码错误'); return; }
+  const phone = _codePhone;
+  clearInterval(_codeTimer);
   // 迁移旧数据
   migrateOldData(phone);
   // 从云端拉取数据
@@ -1688,14 +1721,13 @@ async function doLogin() {
     if (cloudData.asset_history) saveAssetHistory(cloudData.asset_history);
     toast('登录成功，数据已从云端同步');
   } else {
-    // 首次登录，把本地数据推到云端
     await cloudSet(phone, {
       pos_stocks: getPosStocksNS(),
       cash: getCashNS(),
       alert_logs: getAlertLogsNS(),
       asset_history: getAssetHistory()
     });
-    toast('登录成功，数据已上传云端');
+    toast('首次登录，数据已上传云端');
   }
   saveCurrentUser({ phone });
   $('#loginBox').style.display = 'none';
@@ -1703,25 +1735,6 @@ async function doLogin() {
   $('#userPhone').textContent = phone;
   renderPosList();
   updateAccount();
-  updateMineTab();
-}
-
-async function doRegister() {
-  const phone = $('#phoneInput').value.trim();
-  const pwd = $('#pwdInput').value.trim();
-  if (!phone || phone.length !== 11) { toast('请输入正确的11位手机号'); return; }
-  if (!pwd) { toast('请设置密码'); return; }
-  const users = getUsers();
-  if (users[phone]) { toast('该手机号已注册，请直接登录'); return; }
-  users[phone] = pwd;
-  saveUsers(users);
-  // 迁移旧数据
-  migrateOldData(phone);
-  saveCurrentUser({ phone });
-  $('#loginBox').style.display = 'none';
-  $('#userBox').style.display = 'block';
-  $('#userPhone').textContent = phone;
-  toast('注册成功！数据已绑定到 ' + phone);
   updateMineTab();
 }
 
@@ -1842,7 +1855,7 @@ const App = {
   updateAccount, updateSentiment, updatePositionData,
   updateShares, updateCost,
   requestNotify, toggleTheme, refreshData, openNotify, closeNotify,
-  doLogin, doRegister, doLogout, saveSyncToken
+  sendCode, verifyCode, doLogout, saveSyncToken
 };
 
 document.addEventListener('DOMContentLoaded', init);
