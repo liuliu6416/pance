@@ -1512,18 +1512,14 @@ function renderNotifyList() {
 function openNotify() {
   $('#notifyPanel').classList.add('show');
   $('#notifyOverlay').classList.add('show');
-  // 标记所有通知为已读
-  const list = getNotifications();
-  let changed = false;
-  list.forEach((n) => { if (!n.read) { n.read = true; changed = true; } });
-  if (changed) saveNotifications(list);
-  // 清除角标
-  $('#notifyBadge').style.display = 'none';
   renderNotifyList();
 }
 function closeNotify() {
   $('#notifyPanel').classList.remove('show');
   $('#notifyOverlay').classList.remove('show');
+  // 关闭时清除所有通知
+  saveNotifications([]);
+  $('#notifyBadge').style.display = 'none';
 }
 
 function doUpdate() {
