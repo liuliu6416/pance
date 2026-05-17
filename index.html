@@ -1117,8 +1117,8 @@ async function updatePositionData() {
     stock._marketValue = stock._price * stock._shares;
   }
 
-  // 按持股数量降序排列
-  stocks.sort((a, b) => (b._shares || 0) - (a._shares || 0));
+  // 按持仓市值降序排列
+  stocks.sort((a, b) => (b._marketValue || 0) - (a._marketValue || 0));
   savePosStocks(stocks);
   renderPosList();
   App.updateAccount(); // 同步更新仓位页
