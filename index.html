@@ -399,19 +399,26 @@ body{
         <div style="font-size:11px;color:var(--text2);margin-top:4px">已登录</div>
       </div>
       <div class="card">
-        <div class="card-header">📦 数据管理</div>
-        <div style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6">
-          当前账户下：<strong style="color:var(--gold)" id="userStockCount">0</strong> 只持仓股票
+        <div class="card-header">☁️ 云端同步</div>
+        <div style="margin-bottom:10px">
+          <div style="font-size:11px;color:var(--text2);margin-bottom:4px">同步密钥（GitHub Token）</div>
+          <div class="input-row">
+            <input class="input" id="syncTokenInput" placeholder="粘贴 GitHub Token" style="font-size:11px">
+            <button class="btn btn-sm" onclick="App.saveSyncToken()">保存</button>
+          </div>
+          <div style="font-size:10px;color:var(--text2)" id="syncStatus">未设置</div>
         </div>
-        <button class="btn btn-outline" onclick="App.exportData()" style="width:100%;margin-bottom:8px">📤 导出数据到剪贴板</button>
-        <button class="btn btn-outline" onclick="App.importData()" style="width:100%;margin-bottom:8px">📥 从剪贴板导入数据</button>
+        <div style="font-size:11px;color:var(--text2);line-height:1.6">
+          设置后在「我的」Tab注册登录即可自动云端同步。<br>
+          其他设备登录同一手机号后数据自动恢复。<br>
+          <span style="color:var(--gold)">获取Token：github.com/settings/tokens → 勾选repo</span>
+        </div>
       </div>
       <div class="card">
-        <div class="card-header">📱 跨设备同步说明</div>
-        <div style="font-size:12px;color:var(--text2);line-height:1.8">
-          1. 在旧设备点「导出数据」复制数据<br>
-          2. 在新设备登录同一手机号<br>
-          3. 点「导入数据」粘贴即可完成同步
+        <div class="card-header">📊 账户数据</div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.6">
+          持仓股票：<strong style="color:var(--gold)" id="userStockCount">0</strong> 只<br>
+          <span style="font-size:11px" id="syncInfo"></span>
         </div>
       </div>
       <button class="btn btn-danger" onclick="App.doLogout()" style="width:100%;margin-top:8px">退出登录</button>
@@ -1551,9 +1558,59 @@ async function refreshData() {
   toast('数据已刷新');
 }
 
-// ==================== 账户系统 ====================
+// ==================== 账户系统（GitHub云同步） ====================
 const USER_KEY = 'pance_user';
 const USERS_KEY = 'pance_users';
+const CLOUD_REPO = 'liuliu6416/pance';
+const CLOUD_PATH = 'data';
+const SYNC_KEY = 'pance_sync_token';
+
+function getSyncToken() { return localStorage.getItem(SYNC_KEY) || ''; }
+function setSyncToken(t) { localStorage.setItem(SYNC_KEY, t); }
+
+async function cloudGet(phone) {
+  const token = getSyncToken();
+  if (!token) return null;
+  try {
+    const resp = await fetch(`https://api.github.com/repos/${CLOUD_REPO}/contents/${CLOUD_PATH}/${phone}.json`, {
+      headers: { 'Authorization': 'token ' + token }
+    });
+    if (!resp.ok) return null;
+    const d = await resp.json();
+    return JSON.parse(atob(d.content));
+  } catch(e) { return null; }
+}
+
+async function cloudSet(phone, data) {
+  const token = getSyncToken();
+  if (!token) return false;
+  let sha = '';
+  try {
+    const check = await fetch(`https://api.github.com/repos/${CLOUD_REPO}/contents/${CLOUD_PATH}/${phone}.json`, {
+      headers: { 'Authorization': 'token ' + token }
+    });
+    if (check.ok) { const d = await check.json(); sha = d.sha; }
+  } catch(e) {}
+
+  const body = {
+    message: 'sync ' + phone,
+    content: btoa(unescape(encodeURIComponent(JSON.stringify(data)))),
+    branch: 'main'
+  };
+  if (sha) body.sha = sha;
+
+  try {
+    await fetch(`https://api.github.com/repos/${CLOUD_REPO}/contents/${CLOUD_PATH}/${phone}.json`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': 'token ' + token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    return true;
+  } catch(e) { return false; }
+}
 
 function getCurrentUser() { return Store.getObj(USER_KEY); }
 function saveCurrentUser(u) { Store.set(USER_KEY, u); }
@@ -1583,13 +1640,34 @@ function nsGetArr(key) {
   return Array.isArray(v) ? v : [];
 }
 
-// 重写持仓存储为命名空间版本
+// 自动同步到云端（防抖5秒）
+let _syncTimer = null;
+function autoCloudSync() {
+  clearTimeout(_syncTimer);
+  _syncTimer = setTimeout(async () => {
+    const user = getCurrentUser();
+    if (!user || !user.phone) return;
+    await cloudSet(user.phone, {
+      pos_stocks: getPosStocksNS(),
+      cash: getCashNS(),
+      alert_logs: getAlertLogsNS(),
+      asset_history: getAssetHistory()
+    });
+  }, 5000);
+}
+
 function getPosStocksNS() { return nsGetArr('pos_stocks'); }
-function savePosStocksNS(list) { nsSet('pos_stocks', list); }
+function savePosStocksNS(list) {
+  nsSet('pos_stocks', list);
+  autoCloudSync();
+}
 function getAlertLogsNS() { return nsGetArr('alert_logs'); }
 function saveAlertLogsNS(list) { nsSet('alert_logs', list); }
 function getCashNS() { return nsGet('cash') || 0; }
-function saveCashNS(v) { nsSet('cash', v); }
+function saveCashNS(v) {
+  nsSet('cash', v);
+  autoCloudSync();
+}
 
 async function doLogin() {
   const phone = $('#phoneInput').value.trim();
@@ -1601,12 +1679,28 @@ async function doLogin() {
   if (users[phone] !== pwd) { toast('密码错误'); return; }
   // 迁移旧数据
   migrateOldData(phone);
+  // 从云端拉取数据
+  const cloudData = await cloudGet(phone);
+  if (cloudData) {
+    savePosStocksNS(cloudData.pos_stocks || []);
+    if (cloudData.cash != null) saveCashNS(cloudData.cash);
+    if (cloudData.alert_logs) saveAlertLogsNS(cloudData.alert_logs);
+    if (cloudData.asset_history) saveAssetHistory(cloudData.asset_history);
+    toast('登录成功，数据已从云端同步');
+  } else {
+    // 首次登录，把本地数据推到云端
+    await cloudSet(phone, {
+      pos_stocks: getPosStocksNS(),
+      cash: getCashNS(),
+      alert_logs: getAlertLogsNS(),
+      asset_history: getAssetHistory()
+    });
+    toast('登录成功，数据已上传云端');
+  }
   saveCurrentUser({ phone });
   $('#loginBox').style.display = 'none';
   $('#userBox').style.display = 'block';
   $('#userPhone').textContent = phone;
-  toast('登录成功');
-  // 重新加载数据
   renderPosList();
   updateAccount();
   updateMineTab();
@@ -1629,6 +1723,18 @@ async function doRegister() {
   $('#userPhone').textContent = phone;
   toast('注册成功！数据已绑定到 ' + phone);
   updateMineTab();
+}
+
+function saveSyncToken() {
+  const token = $('#syncTokenInput').value.trim();
+  setSyncToken(token);
+  if (token) {
+    $('#syncStatus').innerHTML = '<span style="color:var(--down)">✅ 已设置，登录后自动同步</span>';
+    toast('同步密钥已保存');
+  } else {
+    $('#syncStatus').textContent = '未设置';
+    toast('同步密钥已清除');
+  }
 }
 
 function doLogout() {
@@ -1669,46 +1775,11 @@ function updateMineTab() {
   }
 }
 
-function exportData() {
-  const ns = getNS();
-  const data = {
-    phone: ns,
-    pos_stocks: getPosStocksNS(),
-    cash: getCashNS(),
-    alert_logs: getAlertLogsNS(),
-    asset_history: getAssetHistory()
-  };
-  const text = JSON.stringify(data);
-  navigator.clipboard.writeText(text).then(() => {
-    toast('数据已复制到剪贴板，可在其他设备粘贴导入');
-  }).catch(() => {
-    toast('复制失败，请手动长按复制：' + text);
-  });
-}
-
-async function importData() {
-  try {
-    const text = await navigator.clipboard.readText();
-    const data = JSON.parse(text);
-    if (!data.phone || !data.pos_stocks) { toast('剪贴板数据格式不正确'); return; }
-    const user = getCurrentUser();
-    if (data.phone !== (user.phone || '')) { toast('导入的手机号与当前账户不匹配'); return; }
-    savePosStocksNS(data.pos_stocks);
-    saveCashNS(data.cash || 0);
-    if (data.alert_logs) saveAlertLogsNS(data.alert_logs);
-    if (data.asset_history) saveAssetHistory(data.asset_history);
-    toast('数据导入成功！');
-    renderPosList();
-    updateAccount();
-    updateMineTab();
-  } catch(e) {
-    toast('导入失败，请检查剪贴板内容');
-  }
-}
-
 // ==================== 初始化 ====================
 function init() {
   applyTheme(getTheme());
+  const savedToken = getSyncToken();
+  if (savedToken) { $('#syncTokenInput').value = savedToken; $('#syncStatus').innerHTML = '<span style="color:var(--down)">✅ 已设置</span>'; }
   updateMineTab();
   loadAccount();
   drawAssetChart();
@@ -1771,7 +1842,7 @@ const App = {
   updateAccount, updateSentiment, updatePositionData,
   updateShares, updateCost,
   requestNotify, toggleTheme, refreshData, openNotify, closeNotify,
-  doLogin, doRegister, doLogout, exportData, importData
+  doLogin, doRegister, doLogout, saveSyncToken
 };
 
 document.addEventListener('DOMContentLoaded', init);
