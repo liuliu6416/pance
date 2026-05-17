@@ -1454,8 +1454,19 @@ function init() {
   updateSentiment();
 
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(() => {});
+    navigator.serviceWorker.register('./sw.js', { scope: './' }).then(() => {
+      console.log('SW registered');
+    }).catch(() => {});
   }
+
+  // 监听PWA安装事件
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    window._installPrompt = e;
+  });
+  window.addEventListener('appinstalled', () => {
+    window._installPrompt = null;
+  });
 
   setInterval(updateSentiment, 5000);
   setInterval(monitorAlertStocks, 3000);
