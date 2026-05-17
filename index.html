@@ -7,11 +7,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="大盘温度计">
 <meta name="theme-color" content="#0f0f1a">
-<link rel="manifest" href="manifest.json">
-<link rel="icon" href="icon-192.png" sizes="192x192" type="image/png">
-<link rel="icon" href="icon-512.png" sizes="512x512" type="image/png">
-<link rel="apple-touch-icon" href="icon-192.png">
-<link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
+<link rel="manifest" href="/pance/manifest.json">
+<link rel="icon" href="/pance/icon-192.png" sizes="192x192" type="image/png">
+<link rel="icon" href="/pance/icon-512.png" sizes="512x512" type="image/png">
+<link rel="apple-touch-icon" href="/pance/icon-192.png">
+<link rel="apple-touch-icon" sizes="512x512" href="/pance/icon-512.png">
 <title>大盘温度计</title>
 <style>
 :root {
@@ -1454,7 +1454,7 @@ function init() {
   updateSentiment();
 
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js', { scope: './' }).then(() => {
+    navigator.serviceWorker.register('/pance/sw.js', { scope: '/pance/' }).then(() => {
       console.log('SW registered');
     }).catch(() => {});
   }
