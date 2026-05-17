@@ -152,6 +152,14 @@ body{
 .modal-title{font-size:17px;font-weight:700;margin-bottom:16px;text-align:center}
 .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--modal-bg);color:var(--text);padding:12px 24px;border-radius:10px;font-size:14px;z-index:300;opacity:0;transition:opacity 0.3s;pointer-events:none;border:1px solid rgba(255,255,255,0.1);max-width:90%;text-align:center}
 .toast.show{opacity:1}
+/* 版本更新横幅 */
+.update-banner{
+  position:fixed;top:-60px;left:50%;transform:translateX(-50%);z-index:400;
+  background:var(--gold);color:#1a1a2e;padding:12px 20px;border-radius:0 0 12px 12px;
+  font-size:13px;font-weight:700;cursor:pointer;transition:top 0.3s;
+  max-width:420px;width:100%;text-align:center;letter-spacing:0.5px;
+}
+.update-banner.show{top:0}
 .search-result{background:var(--card);border-radius:var(--radius);padding:14px;margin-top:8px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;border:1px solid var(--border)}
 .search-result:active{background:var(--card-hover)}
 .alert-log{font-size:12px;color:var(--text2);max-height:220px;overflow-y:auto}
@@ -364,6 +372,11 @@ body{
       <span class="nav-icon">🛡️</span><span class="nav-label">仓位</span>
     </div>
   </nav>
+</div>
+
+<!-- 版本更新横幅 -->
+<div class="update-banner" id="updateBanner" onclick="doUpdate()">
+  🆕 新版本已就绪，点击更新 →
 </div>
 
 <div class="toast" id="toast"></div>
@@ -1419,6 +1432,12 @@ function applyTheme(t) {
 function toggleTheme() {
   setTheme(getTheme() === 'dark' ? 'light' : 'dark');
 }
+function doUpdate() {
+  navigator.serviceWorker.getRegistration().then((reg) => {
+    if (reg && reg.waiting) reg.waiting.postMessage('SKIP_WAITING');
+    window.location.reload();
+  });
+}
 async function refreshData() {
   toast('刷新中...');
   historyChartsLoaded = false;
@@ -1454,10 +1473,28 @@ function init() {
   updateSentiment();
 
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/pance/sw.js', { scope: '/pance/' }).then(() => {
-      console.log('SW registered');
+    navigator.serviceWorker.register('/pance/sw.js', { scope: '/pance/' }).then((reg) => {
+      // 监听更新
+      reg.addEventListener('updatefound', () => {
+        const newSW = reg.installing;
+        newSW.addEventListener('statechange', () => {
+          if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+            // 新版本已就绪
+            $('#updateBanner').classList.add('show');
+          }
+        });
+      });
+      // 每30分钟检查更新
+      setInterval(() => { reg.update(); }, 1800000);
     }).catch(() => {});
   }
+
+  // 监听SW发来的消息
+  navigator.serviceWorker.addEventListener('message', (e) => {
+    if (e.data && e.data.type === 'UPDATE_READY') {
+      $('#updateBanner').classList.add('show');
+    }
+  });
 
   // 监听PWA安装事件
   window.addEventListener('beforeinstallprompt', (e) => {
@@ -1478,7 +1515,7 @@ const App = {
   removeAlertStock, removePosStock, toggleAlertType,
   updateAccount, updateSentiment, updatePositionData,
   updateShares, updateCost,
-  requestNotify, toggleTheme, refreshData
+  requestNotify, toggleTheme, refreshData, doUpdate
 };
 
 document.addEventListener('DOMContentLoaded', init);
