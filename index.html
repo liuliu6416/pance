@@ -492,7 +492,9 @@ async function fetchTxIndex(code) {
 // 腾讯 API 返回GBK编码，用 TextDecoder 解析
 async function fetchTxStock(code) {
   try {
-    const prefix = /^[0-2]/.test(code) ? 'sz' : 'sh';
+    let prefix = 'sh';
+    if (/^\d{5}$/.test(code)) prefix = 'hk';
+    else if (/^[0-2]/.test(code)) prefix = 'sz';
     const resp = await fetch(`https://qt.gtimg.cn/q=${prefix}${code}`);
     const buffer = await resp.arrayBuffer();
     const decoder = new TextDecoder('gbk');
