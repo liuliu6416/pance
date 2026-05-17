@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="大盘温度计">
 <meta name="theme-color" content="#0f0f1a">
-<link rel="manifest" href="/pance/manifest.json">
+<link rel="manifest" href="/pance/manifest.json" crossorigin="use-credentials">
 <link rel="icon" href="/pance/icon-192.png" sizes="192x192" type="image/png">
 <link rel="icon" href="/pance/icon-512.png" sizes="512x512" type="image/png">
 <link rel="apple-touch-icon" href="/pance/icon-192.png">
@@ -400,6 +400,7 @@ body{
         <div style="font-size:18px;font-weight:700" id="userPhone"></div>
         <div style="font-size:11px;color:var(--text2);margin-top:4px">已登录</div>
       </div>
+      <button class="btn" id="installBtn" onclick="App.installApp()" style="width:100%;margin-bottom:12px;display:none">📲 安装到手机桌面</button>
       <div class="card">
         <div class="card-header">☁️ 云端同步</div>
         <div style="margin-bottom:10px">
@@ -1738,6 +1739,19 @@ async function verifyCode() {
   updateMineTab();
 }
 
+function installApp() {
+  if (window._installPrompt) {
+    window._installPrompt.prompt();
+    window._installPrompt.userChoice.then((result) => {
+      if (result.outcome === 'accepted') toast('正在安装...');
+      window._installPrompt = null;
+      $('#installBtn').style.display = 'none';
+    });
+  } else {
+    toast('请在Chrome浏览器打开此页面，然后点右上角⋮ → 添加到主屏幕');
+  }
+}
+
 function saveSyncToken() {
   const token = $('#syncTokenInput').value.trim();
   setSyncToken(token);
@@ -1836,13 +1850,22 @@ function init() {
   });
 
   // 监听PWA安装事件
+  window._installPrompt = null;
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     window._installPrompt = e;
+    $('#installBtn').style.display = 'block';
   });
   window.addEventListener('appinstalled', () => {
     window._installPrompt = null;
+    $('#installBtn').style.display = 'none';
+    toast('安装成功！');
   });
+
+  // 检测是否已安装为PWA
+  if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) {
+    window._isPWA = true;
+  }
 
   setInterval(updateSentiment, 5000);
   setInterval(monitorPositionAlerts, 3000);
@@ -1855,7 +1878,7 @@ const App = {
   updateAccount, updateSentiment, updatePositionData,
   updateShares, updateCost,
   requestNotify, toggleTheme, refreshData, openNotify, closeNotify,
-  sendCode, verifyCode, doLogout, saveSyncToken
+  sendCode, verifyCode, doLogout, saveSyncToken, installApp
 };
 
 document.addEventListener('DOMContentLoaded', init);
