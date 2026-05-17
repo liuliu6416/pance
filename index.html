@@ -463,25 +463,24 @@ body{
 const API = {
   // 腾讯 API 获取大盘指数
   txIndex: (code) => `https://qt.gtimg.cn/q=${code}`,
+  // 判断市场前缀
+  marketPrefix: (code) => {
+    if (/^\d{5}$/.test(code)) return 'hk';
+    if (/^[023]/.test(code)) return 'sz';
+    if (/^8/.test(code) && !code.startsWith('68')) return 'bj';
+    return 'sh';
+  },
+  // 东方财富secid市场代码
+  marketId: (code) => {
+    if (/^\d{5}$/.test(code)) return '116';
+    if (/^[023]/.test(code)) return '0';
+    return '1';
+  },
   // 腾讯 API 获取股票名称+实时价格
-  tx: (code) => {
-    // 港股：5位数字
-    if (/^\d{5}$/.test(code)) return `https://qt.gtimg.cn/q=hk${code}`;
-    // A股：沪市 sh，深市 sz
-    const prefix = /^[0-2]/.test(code) ? 'sz' : 'sh';
-    return `https://qt.gtimg.cn/q=${prefix}${code}`;
-  },
+  tx: (code) => `https://qt.gtimg.cn/q=${API.marketPrefix(code)}${code}`,
   // 东方财富 API 获取涨跌幅/涨停跌停价
-  stock: (code) => {
-    // 港股
-    if (/^\d{5}$/.test(code)) return `https://push2.eastmoney.com/api/qt/stock/get?secid=116.${code}&fields=f43,f51,f52,f58,f60,f169,f170,f171`;
-    const market = /^[0-2]/.test(code) ? '0' : '1';
-    return `https://push2.eastmoney.com/api/qt/stock/get?secid=${market}.${code}&fields=f43,f51,f52,f58,f60,f169,f170,f171`;
-  },
-  kline: (code, klt, lmt) => {
-    const market = /^\d{5}$/.test(code) ? '116' : (/^[0-2]/.test(code) ? '0' : '1');
-    return `https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=${market}.${code}&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61&klt=${klt}&fqt=1&end=20500101&lmt=${lmt}`;
-  }
+  stock: (code) => `https://push2.eastmoney.com/api/qt/stock/get?secid=${API.marketId(code)}.${code}&fields=f43,f51,f52,f58,f60,f169,f170,f171`,
+  kline: (code, klt, lmt) => `https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=${API.marketId(code)}.${code}&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61&klt=${klt}&fqt=1&end=20500101&lmt=${lmt}`
 };
 const STORAGE_KEY = {
   positionStocks: 'pance_position_stocks',
@@ -554,9 +553,7 @@ async function fetchTxIndex(code) {
 // 腾讯 API 返回GBK编码，用 TextDecoder 解析
 async function fetchTxStock(code) {
   try {
-    let prefix = 'sh';
-    if (/^\d{5}$/.test(code)) prefix = 'hk';
-    else if (/^[0-2]/.test(code)) prefix = 'sz';
+    const prefix = API.marketPrefix(code);
     const resp = await fetch(`https://qt.gtimg.cn/q=${prefix}${code}`);
     const buffer = await resp.arrayBuffer();
     const decoder = new TextDecoder('gbk');
@@ -1342,7 +1339,7 @@ async function searchStock() {
   toast('搜索中...');
   const txData = await fetchTxStock(code);
   if (!txData || !txData.name || txData.name === '--') {
-    resultEl.innerHTML = '<div class="search-result" style="justify-content:center;color:var(--text2)">未找到该股票，请检查代码（A股6位/港股5位）</div>';
+    resultEl.innerHTML = '<div class="search-result" style="justify-content:center;color:var(--text2)">未找到该股票，请检查代码（沪深/创业板/科创板/北证/港股）</div>';
     return;
   }
   const emJson = await fetchAPI(API.stock(code));
