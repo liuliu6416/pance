@@ -369,6 +369,55 @@ body{
     </div>
   </div>
 
+  <!-- Tab 3: 我的 -->
+  <div class="tab-content" id="tab-mine">
+    <!-- 未登录 -->
+    <div id="loginBox">
+      <div class="card" style="text-align:center">
+        <div style="font-size:48px;margin-bottom:12px">👤</div>
+        <div style="font-size:18px;font-weight:700;margin-bottom:20px">登录账户</div>
+        <div style="margin-bottom:12px">
+          <input class="input" id="phoneInput" type="tel" placeholder="手机号码" style="width:100%;text-align:center;font-size:16px" maxlength="11">
+        </div>
+        <div style="margin-bottom:12px">
+          <input class="input" id="pwdInput" type="password" placeholder="设置/输入密码" style="width:100%;text-align:center;font-size:16px" maxlength="20">
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn" onclick="App.doLogin()" style="flex:1">登录</button>
+          <button class="btn btn-outline" onclick="App.doRegister()">注册</button>
+        </div>
+        <div style="font-size:10px;color:var(--text2);margin-top:12px">
+          首次使用请先注册，同一手机号可在其他设备登录同步数据
+        </div>
+      </div>
+    </div>
+    <!-- 已登录 -->
+    <div id="userBox" style="display:none">
+      <div class="card" style="text-align:center">
+        <div style="font-size:48px;margin-bottom:8px">👤</div>
+        <div style="font-size:18px;font-weight:700" id="userPhone"></div>
+        <div style="font-size:11px;color:var(--text2);margin-top:4px">已登录</div>
+      </div>
+      <div class="card">
+        <div class="card-header">📦 数据管理</div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6">
+          当前账户下：<strong style="color:var(--gold)" id="userStockCount">0</strong> 只持仓股票
+        </div>
+        <button class="btn btn-outline" onclick="App.exportData()" style="width:100%;margin-bottom:8px">📤 导出数据到剪贴板</button>
+        <button class="btn btn-outline" onclick="App.importData()" style="width:100%;margin-bottom:8px">📥 从剪贴板导入数据</button>
+      </div>
+      <div class="card">
+        <div class="card-header">📱 跨设备同步说明</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.8">
+          1. 在旧设备点「导出数据」复制数据<br>
+          2. 在新设备登录同一手机号<br>
+          3. 点「导入数据」粘贴即可完成同步
+        </div>
+      </div>
+      <button class="btn btn-danger" onclick="App.doLogout()" style="width:100%;margin-top:8px">退出登录</button>
+    </div>
+  </div>
+
   <!-- 底部导航 -->
   <nav class="bottom-nav">
     <div class="nav-item active" data-tab="0" onclick="App.switchTab(0)">
@@ -379,6 +428,9 @@ body{
     </div>
     <div class="nav-item" data-tab="2" onclick="App.switchTab(2)">
       <span class="nav-icon">🛡️</span><span class="nav-label">仓位</span>
+    </div>
+    <div class="nav-item" data-tab="3" onclick="App.switchTab(3)">
+      <span class="nav-icon">👤</span><span class="nav-label">我的</span>
     </div>
   </nav>
 </div>
@@ -426,7 +478,7 @@ const STORAGE_KEY = {
   cashBalance: 'pance_cash',
   alertLog: 'pance_alert_log'
 };
-const TABS = ['sentiment','position','account'];
+const TABS = ['sentiment','position','account','mine'];
 
 // ==================== 工具函数 ====================
 const $ = (s) => document.querySelector(s);
@@ -913,8 +965,16 @@ const priceSnapshots = {};
 const lastAlertTime = {};
 const ALERT_COOLDOWN = 120000;
 
-function getAlertLogs() { return Store.getArr(STORAGE_KEY.alertLog); }
-function saveAlertLogs(list) { if (list.length > 50) list = list.slice(-50); Store.set(STORAGE_KEY.alertLog, list); }
+function getAlertLogs() {
+  const user = getCurrentUser();
+  return (user && user.phone) ? getAlertLogsNS() : Store.getArr(STORAGE_KEY.alertLog);
+}
+function saveAlertLogs(list) {
+  if (list.length > 50) list = list.slice(-50);
+  const user = getCurrentUser();
+  if (user && user.phone) { saveAlertLogsNS(list); return; }
+  Store.set(STORAGE_KEY.alertLog, list);
+}
 
 function addAlertLog(stock, type, price) {
   const logs = getAlertLogs();
@@ -1007,8 +1067,15 @@ async function monitorPositionAlerts() {
 }
 
 // ==================== 持仓模块（含预警、数量、市值、占比） ====================
-function getPosStocks() { return Store.getArr(STORAGE_KEY.positionStocks); }
-function savePosStocks(list) { Store.set(STORAGE_KEY.positionStocks, list); }
+function getPosStocks() {
+  const user = getCurrentUser();
+  return user && user.phone ? getPosStocksNS() : Store.getArr(STORAGE_KEY.positionStocks);
+}
+function savePosStocks(list) {
+  const user = getCurrentUser();
+  if (user && user.phone) { savePosStocksNS(list); return; }
+  Store.set(STORAGE_KEY.positionStocks, list);
+}
 
 function getRating(weekChg, monthChg) {
   if (weekChg >= 5 && monthChg >= 10) return { grade: 'A', label: '强势领涨', cls: 'badge-A' };
@@ -1204,7 +1271,9 @@ function updateAccount() {
   const totalAsset = cash + holdingMV;
   const ratio = totalAsset > 0 ? Math.round((holdingMV / totalAsset) * 10000) / 100 : 0;
 
-  Store.set(STORAGE_KEY.cashBalance, cash);
+  const userNS = getCurrentUser();
+  if (userNS && userNS.phone) { saveCashNS(cash); }
+  else { Store.set(STORAGE_KEY.cashBalance, cash); }
 
   // 记录资产历史（每天存一个点）
   if (totalAsset > 0) {
@@ -1246,7 +1315,8 @@ function updateAccount() {
 }
 
 function loadAccount() {
-  const cash = Store.get(STORAGE_KEY.cashBalance);
+  const user = getCurrentUser();
+  const cash = (user && user.phone) ? getCashNS() : Store.get(STORAGE_KEY.cashBalance);
   if (cash) $('#cashInput').value = cash;
   updateAccount();
 }
@@ -1342,6 +1412,7 @@ function switchTab(idx) {
   if (idx === 0) updateSentiment();
   if (idx === 1) { renderPosList(); updatePositionData(); }
   if (idx === 2) { updateAccount(); drawAssetChart(); }
+  if (idx === 3) updateMineTab();
 }
 
 // 判断是否A股交易时段
@@ -1480,9 +1551,165 @@ async function refreshData() {
   toast('数据已刷新');
 }
 
+// ==================== 账户系统 ====================
+const USER_KEY = 'pance_user';
+const USERS_KEY = 'pance_users';
+
+function getCurrentUser() { return Store.getObj(USER_KEY); }
+function saveCurrentUser(u) { Store.set(USER_KEY, u); }
+function getUsers() { return Store.getObj(USERS_KEY); }
+function saveUsers(users) { Store.set(USERS_KEY, users); }
+
+// 手机号命名空间
+function getNS() {
+  const user = getCurrentUser();
+  return user ? user.phone : '';
+}
+
+// 命名空间存储
+function nsGet(key) {
+  const all = Store.getObj('pance_ns_' + getNS());
+  return all[key] || null;
+}
+function nsSet(key, val) {
+  const ns = getNS();
+  if (!ns) return;
+  const all = Store.getObj('pance_ns_' + ns);
+  all[key] = val;
+  Store.set('pance_ns_' + ns, all);
+}
+function nsGetArr(key) {
+  const v = nsGet(key);
+  return Array.isArray(v) ? v : [];
+}
+
+// 重写持仓存储为命名空间版本
+function getPosStocksNS() { return nsGetArr('pos_stocks'); }
+function savePosStocksNS(list) { nsSet('pos_stocks', list); }
+function getAlertLogsNS() { return nsGetArr('alert_logs'); }
+function saveAlertLogsNS(list) { nsSet('alert_logs', list); }
+function getCashNS() { return nsGet('cash') || 0; }
+function saveCashNS(v) { nsSet('cash', v); }
+
+async function doLogin() {
+  const phone = $('#phoneInput').value.trim();
+  const pwd = $('#pwdInput').value.trim();
+  if (!phone || phone.length !== 11) { toast('请输入正确的11位手机号'); return; }
+  if (!pwd) { toast('请输入密码'); return; }
+  const users = getUsers();
+  if (!users[phone]) { toast('该手机号未注册，请先注册'); return; }
+  if (users[phone] !== pwd) { toast('密码错误'); return; }
+  // 迁移旧数据
+  migrateOldData(phone);
+  saveCurrentUser({ phone });
+  $('#loginBox').style.display = 'none';
+  $('#userBox').style.display = 'block';
+  $('#userPhone').textContent = phone;
+  toast('登录成功');
+  // 重新加载数据
+  renderPosList();
+  updateAccount();
+  updateMineTab();
+}
+
+async function doRegister() {
+  const phone = $('#phoneInput').value.trim();
+  const pwd = $('#pwdInput').value.trim();
+  if (!phone || phone.length !== 11) { toast('请输入正确的11位手机号'); return; }
+  if (!pwd) { toast('请设置密码'); return; }
+  const users = getUsers();
+  if (users[phone]) { toast('该手机号已注册，请直接登录'); return; }
+  users[phone] = pwd;
+  saveUsers(users);
+  // 迁移旧数据
+  migrateOldData(phone);
+  saveCurrentUser({ phone });
+  $('#loginBox').style.display = 'none';
+  $('#userBox').style.display = 'block';
+  $('#userPhone').textContent = phone;
+  toast('注册成功！数据已绑定到 ' + phone);
+  updateMineTab();
+}
+
+function doLogout() {
+  saveCurrentUser({});
+  $('#loginBox').style.display = 'block';
+  $('#userBox').style.display = 'none';
+  toast('已退出登录');
+}
+
+// 首次登录时把旧的非命名空间数据迁移过来
+function migrateOldData(phone) {
+  const oldPos = Store.getArr(STORAGE_KEY.positionStocks);
+  const oldCash = Store.get(STORAGE_KEY.cashBalance);
+  const oldLogs = Store.getArr(STORAGE_KEY.alertLog);
+  if (oldPos.length > 0 || oldCash) {
+    const nsKey = 'pance_ns_' + phone;
+    const existing = Store.getObj(nsKey);
+    if (!existing.pos_stocks || existing.pos_stocks.length === 0) {
+      existing.pos_stocks = oldPos;
+      if (oldCash) existing.cash = oldCash;
+      if (oldLogs.length > 0) existing.alert_logs = oldLogs;
+      Store.set(nsKey, existing);
+    }
+  }
+}
+
+function updateMineTab() {
+  const user = getCurrentUser();
+  if (user && user.phone) {
+    $('#loginBox').style.display = 'none';
+    $('#userBox').style.display = 'block';
+    $('#userPhone').textContent = user.phone;
+    const stocks = getPosStocksNS();
+    $('#userStockCount').textContent = stocks.length;
+  } else {
+    $('#loginBox').style.display = 'block';
+    $('#userBox').style.display = 'none';
+  }
+}
+
+function exportData() {
+  const ns = getNS();
+  const data = {
+    phone: ns,
+    pos_stocks: getPosStocksNS(),
+    cash: getCashNS(),
+    alert_logs: getAlertLogsNS(),
+    asset_history: getAssetHistory()
+  };
+  const text = JSON.stringify(data);
+  navigator.clipboard.writeText(text).then(() => {
+    toast('数据已复制到剪贴板，可在其他设备粘贴导入');
+  }).catch(() => {
+    toast('复制失败，请手动长按复制：' + text);
+  });
+}
+
+async function importData() {
+  try {
+    const text = await navigator.clipboard.readText();
+    const data = JSON.parse(text);
+    if (!data.phone || !data.pos_stocks) { toast('剪贴板数据格式不正确'); return; }
+    const user = getCurrentUser();
+    if (data.phone !== (user.phone || '')) { toast('导入的手机号与当前账户不匹配'); return; }
+    savePosStocksNS(data.pos_stocks);
+    saveCashNS(data.cash || 0);
+    if (data.alert_logs) saveAlertLogsNS(data.alert_logs);
+    if (data.asset_history) saveAssetHistory(data.asset_history);
+    toast('数据导入成功！');
+    renderPosList();
+    updateAccount();
+    updateMineTab();
+  } catch(e) {
+    toast('导入失败，请检查剪贴板内容');
+  }
+}
+
 // ==================== 初始化 ====================
 function init() {
   applyTheme(getTheme());
+  updateMineTab();
   loadAccount();
   drawAssetChart();
   updateNotifyBadge();
@@ -1543,7 +1770,8 @@ const App = {
   removePosStock, togglePosAlertType,
   updateAccount, updateSentiment, updatePositionData,
   updateShares, updateCost,
-  requestNotify, toggleTheme, refreshData, openNotify, closeNotify
+  requestNotify, toggleTheme, refreshData, openNotify, closeNotify,
+  doLogin, doRegister, doLogout, exportData, importData
 };
 
 document.addEventListener('DOMContentLoaded', init);
