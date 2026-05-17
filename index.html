@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="盘策">
+<meta name="apple-mobile-web-app-title" content="大盘温度计">
 <meta name="theme-color" content="#0f0f1a">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png" sizes="192x192" type="image/png">
 <link rel="icon" href="icon-512.png" sizes="512x512" type="image/png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
-<title>盘策 · 炒股助手</title>
+<title>大盘温度计</title>
 <style>
 :root {
   --bg: #0f0f1a;
@@ -177,7 +177,7 @@ body{
 
 <div id="app">
   <div class="header">
-    <div class="header-title"><span class="icon">🧊</span>盘策</div>
+    <div class="header-title"><span class="icon">🌡️</span>大盘温度计</div>
     <div style="display:flex;align-items:center;gap:10px">
       <span onclick="App.toggleTheme()" id="themeBtn" style="font-size:20px;cursor:pointer;padding:6px 8px;line-height:1">🌙</span>
       <span onclick="App.refreshData()" style="font-size:20px;cursor:pointer;padding:6px 8px;line-height:1">🔄</span>
@@ -1451,7 +1451,7 @@ function init() {
   updateSentiment();
 
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+    navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(() => {});
   }
 
   setInterval(updateSentiment, 5000);
