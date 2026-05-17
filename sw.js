@@ -1,8 +1,10 @@
-const CACHE = 'pance-v1';
-const ASSETS = ['/index.html', '/manifest.json', '/icon.svg'];
+const CACHE = 'pance-v2';
+const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon.svg'];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)));
+  e.waitUntil(
+    caches.open(CACHE).then((c) => c.addAll(ASSETS).catch(() => {}))
+  );
   self.skipWaiting();
 });
 
@@ -19,7 +21,14 @@ self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
   e.respondWith(
     caches.match(e.request).then(
-      (cached) => cached || fetch(e.request).catch(() => cached)
+      (cached) => cached || fetch(e.request).then((resp) => {
+        // Cache successful responses
+        if (resp.status === 200) {
+          const clone = resp.clone();
+          caches.open(CACHE).then((c) => c.put(e.request, clone));
+        }
+        return resp;
+      }).catch(() => cached)
     )
   );
 });
