@@ -465,7 +465,10 @@ body{
 <div class="notify-panel" id="notifyPanel">
   <div class="panel-header">
     <span style="font-weight:700;font-size:16px">🔔 通知中心</span>
-    <span class="panel-close" onclick="App.closeNotify()">✕</span>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-sm btn-outline" onclick="App.checkUpdate()" style="font-size:10px">检查更新</button>
+      <span class="panel-close" onclick="App.closeNotify()">✕</span>
+    </div>
   </div>
   <div id="notifyList"></div>
 </div>
@@ -1762,6 +1765,23 @@ async function verifyCode() {
   updateMineTab();
 }
 
+function checkUpdate() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistration().then((reg) => {
+      if (!reg) { toast('未找到Service Worker，请刷新页面'); return; }
+      reg.update();
+      if (reg.waiting) {
+        addNotification('update', '版本更新就绪', '新版本已下载，点击立即更新');
+        updateNotifyBadge();
+        renderNotifyList();
+        toast('发现新版本！');
+      } else {
+        toast('已是最新版本');
+      }
+    });
+  }
+}
+
 function installApp() {
   if (window._installPrompt) {
     window._installPrompt.prompt();
@@ -1898,17 +1918,26 @@ function init() {
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/pance/sw.js', { scope: '/pance/' }).then((reg) => {
+      // 页面加载时立即检查更新
+      reg.update();
+      // 如果已有等待中的SW，说明有更新
+      if (reg.waiting) {
+        addNotification('update', '版本更新就绪', '新版本已下载，点击立即更新');
+        updateNotifyBadge();
+      }
       // 监听更新→加入通知中心
       reg.addEventListener('updatefound', () => {
         const newSW = reg.installing;
-        newSW.addEventListener('statechange', () => {
-          if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
-            addNotification('update', '版本更新就绪', '新版本已下载，点击立即更新');
-            updateNotifyBadge();
-          }
-        });
+        if (newSW) {
+          newSW.addEventListener('statechange', () => {
+            if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+              addNotification('update', '版本更新就绪', '新版本已下载，点击立即更新');
+              updateNotifyBadge();
+            }
+          });
+        }
       });
-      setInterval(() => { reg.update(); }, 1800000);
+      setInterval(() => { reg.update(); }, 600000); // 每10分钟
     }).catch(() => {});
   }
 
@@ -1949,7 +1978,7 @@ const App = {
   updateAccount, updateSentiment, updatePositionData,
   updateShares, updateCost,
   requestNotify, toggleTheme, refreshData, openNotify, closeNotify,
-  sendCode, verifyCode, doLogout, saveSyncToken, installApp, saveMemo
+  sendCode, verifyCode, doLogout, saveSyncToken, installApp, saveMemo, checkUpdate
 };
 
 document.addEventListener('DOMContentLoaded', init);
