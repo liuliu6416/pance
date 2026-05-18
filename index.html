@@ -412,25 +412,10 @@ body{
       <button class="btn" id="installBtn" onclick="App.installApp()" style="width:100%;margin-bottom:12px;display:none">📲 安装到手机桌面</button>
       <div class="card">
         <div class="card-header">☁️ 云端同步</div>
-        <div style="margin-bottom:10px">
-          <div style="font-size:11px;color:var(--text2);margin-bottom:4px">同步密钥（GitHub Token）</div>
-          <div class="input-row">
-            <input class="input" id="syncTokenInput" placeholder="粘贴 GitHub Token" style="font-size:11px">
-            <button class="btn btn-sm" onclick="App.saveSyncToken()">保存</button>
-          </div>
-          <div style="font-size:10px;color:var(--text2)" id="syncStatus">未设置</div>
-        </div>
-        <div style="font-size:11px;color:var(--text2);line-height:1.6">
-          设置后在「我的」Tab注册登录即可自动云端同步。<br>
-          其他设备登录同一手机号后数据自动恢复。<br>
-          <span style="color:var(--gold)">获取Token：github.com/settings/tokens → 勾选repo</span>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-header">📊 账户数据</div>
         <div style="font-size:13px;color:var(--text2);line-height:1.6">
+          登录后数据自动云端同步<br>
           持仓股票：<strong style="color:var(--gold)" id="userStockCount">0</strong> 只<br>
-          <span style="font-size:11px" id="syncInfo"></span>
+          <span style="font-size:11px;color:var(--down)" id="syncInfo">✅ 无需额外设置，手机号即账号</span>
         </div>
       </div>
       <div class="card">
@@ -1580,56 +1565,62 @@ async function refreshData() {
   toast('数据已刷新');
 }
 
-// ==================== 账户系统（GitHub云同步） ====================
+// ==================== 账户系统（jsonblob免费云存储，零密钥） ====================
 const USER_KEY = 'pance_user';
-const USERS_KEY = 'pance_users';
-const CLOUD_REPO = 'liuliu6416/pance';
-const CLOUD_PATH = 'data';
-const SYNC_KEY = 'pance_sync_token';
+const CLOUD_ROOT = '/api/jsonBlob/019e394a-4915-7752-9f0a-22cd45dd4a90';
+const CLOUD_BASE = 'https://jsonblob.com';
 
-function getSyncToken() { return localStorage.getItem(SYNC_KEY) || ''; }
-function setSyncToken(t) { localStorage.setItem(SYNC_KEY, t); }
+async function cloudGetRoot() {
+  try {
+    const resp = await fetch(CLOUD_BASE + CLOUD_ROOT);
+    if (!resp.ok) return { users: {} };
+    return await resp.json();
+  } catch(e) { return { users: {} }; }
+}
+
+async function cloudSetRoot(data) {
+  try {
+    await fetch(CLOUD_BASE + CLOUD_ROOT, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+  } catch(e) {}
+}
 
 async function cloudGet(phone) {
-  const token = getSyncToken();
-  if (!token) return null;
   try {
-    const resp = await fetch(`https://api.github.com/repos/${CLOUD_REPO}/contents/${CLOUD_PATH}/${phone}.json`, {
-      headers: { 'Authorization': 'token ' + token }
-    });
+    const root = await cloudGetRoot();
+    const blobId = root.users?.[phone];
+    if (!blobId) return null;
+    const resp = await fetch(CLOUD_BASE + '/api/jsonBlob/' + blobId);
     if (!resp.ok) return null;
-    const d = await resp.json();
-    return JSON.parse(atob(d.content));
+    return await resp.json();
   } catch(e) { return null; }
 }
 
 async function cloudSet(phone, data) {
-  const token = getSyncToken();
-  if (!token) return false;
-  let sha = '';
   try {
-    const check = await fetch(`https://api.github.com/repos/${CLOUD_REPO}/contents/${CLOUD_PATH}/${phone}.json`, {
-      headers: { 'Authorization': 'token ' + token }
-    });
-    if (check.ok) { const d = await check.json(); sha = d.sha; }
-  } catch(e) {}
-
-  const body = {
-    message: 'sync ' + phone,
-    content: btoa(unescape(encodeURIComponent(JSON.stringify(data)))),
-    branch: 'main'
-  };
-  if (sha) body.sha = sha;
-
-  try {
-    await fetch(`https://api.github.com/repos/${CLOUD_REPO}/contents/${CLOUD_PATH}/${phone}.json`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': 'token ' + token,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body)
-    });
+    const root = await cloudGetRoot();
+    if (!root.users) root.users = {};
+    let blobId = root.users[phone];
+    if (blobId) {
+      await fetch(CLOUD_BASE + '/api/jsonBlob/' + blobId, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+    } else {
+      const resp = await fetch(CLOUD_BASE + '/api/jsonBlob', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const loc = resp.headers.get('Location') || '';
+      blobId = loc.replace('/api/jsonBlob/', '');
+      root.users[phone] = blobId;
+      await cloudSetRoot(root);
+    }
     return true;
   } catch(e) { return false; }
 }
@@ -1842,18 +1833,6 @@ function drawMVChart() {
   drawLineChart('#mvChart', history, null);
 }
 
-function saveSyncToken() {
-  const token = $('#syncTokenInput').value.trim();
-  setSyncToken(token);
-  if (token) {
-    $('#syncStatus').innerHTML = '<span style="color:var(--down)">✅ 已设置，登录后自动同步</span>';
-    toast('同步密钥已保存');
-  } else {
-    $('#syncStatus').textContent = '未设置';
-    toast('同步密钥已清除');
-  }
-}
-
 function doLogout() {
   saveCurrentUser({});
   $('#loginBox').style.display = 'block';
@@ -1895,8 +1874,6 @@ function updateMineTab() {
 // ==================== 初始化 ====================
 function init() {
   applyTheme(getTheme());
-  const savedToken = getSyncToken();
-  if (savedToken) { $('#syncTokenInput').value = savedToken; $('#syncStatus').innerHTML = '<span style="color:var(--down)">✅ 已设置</span>'; }
   updateMineTab();
   loadMemo();
   loadAccount();
@@ -1978,7 +1955,7 @@ const App = {
   updateAccount, updateSentiment, updatePositionData,
   updateShares, updateCost,
   requestNotify, toggleTheme, refreshData, openNotify, closeNotify,
-  sendCode, verifyCode, doLogout, saveSyncToken, installApp, saveMemo, checkUpdate
+  sendCode, verifyCode, doLogout, installApp, saveMemo, checkUpdate
 };
 
 document.addEventListener('DOMContentLoaded', init);
