@@ -67,6 +67,7 @@ body{
   background:var(--bg);
   position:relative;
   overflow-x:hidden;
+  padding-top:50px;
   padding-bottom:75px;
 }
 .header{
@@ -74,8 +75,12 @@ body{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  position:sticky;
+  position:fixed;
   top:0;
+  left:50%;
+  transform:translateX(-50%);
+  width:100%;
+  max-width:420px;
   z-index:100;
   background:var(--bg);
   border-bottom:1px solid rgba(255,255,255,0.06);
@@ -299,7 +304,11 @@ body{
       <button class="btn" onclick="App.searchStock()">搜索添加</button>
     </div>
     <div id="posSearchResult"></div>
-    <div style="font-size:12px;color:var(--text2);margin-bottom:12px" id="posSummary"></div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:8px" id="posSummary"></div>
+    <div class="card" style="padding:12px;margin-bottom:12px">
+      <div class="card-header">📈 持仓市值趋势</div>
+      <canvas id="mvChart" width="400" height="200" style="width:100%;height:200px"></canvas>
+    </div>
     <div id="posStockList"></div>
     <div id="posEmpty" class="empty-state">
       <div class="empty-icon">📈</div>
@@ -423,6 +432,11 @@ body{
           持仓股票：<strong style="color:var(--gold)" id="userStockCount">0</strong> 只<br>
           <span style="font-size:11px" id="syncInfo"></span>
         </div>
+      </div>
+      <div class="card">
+        <div class="card-header">📝 交易心得备忘录</div>
+        <textarea class="input" id="memoInput" placeholder="记录你的交易心得、复盘总结..." style="width:100%;height:120px;resize:vertical;font-size:13px;line-height:1.6" oninput="App.saveMemo()"></textarea>
+        <div style="font-size:10px;color:var(--text2);margin-top:4px">自动保存，登录后云端同步</div>
       </div>
       <button class="btn btn-danger" onclick="App.doLogout()" style="width:100%;margin-top:8px">退出登录</button>
     </div>
@@ -1040,36 +1054,39 @@ function checkAlerts(stock, currentPrice) {
 
 async function monitorPositionAlerts() {
   const stocks = getPosStocks();
+  let hasUpdate = false;
   for (const stock of stocks) {
     if (!stock.alertTypes || stock.alertTypes.length === 0) continue;
-    // 从新浪获取名称+价格
-    const sinaData = await fetchTxStock(stock.code);
-    if (!sinaData) continue;
+    const txData = await fetchTxStock(stock.code);
+    if (!txData) continue;
     const emJson = await fetchAPI(API.stock(stock.code));
     const emData = emJson ? parseStockData(emJson) : null;
 
-    updatePriceSnapshot(stock.code, sinaData.price);
-    stock._price = sinaData.price;
-    stock._changePct = emData ? emData.changePct : ((sinaData.price - sinaData.prevClose) / sinaData.prevClose * 100);
-    stock._prevClose = sinaData.prevClose;
-    stock._name = sinaData.name || stock.name;
+    updatePriceSnapshot(stock.code, txData.price);
+    stock._price = txData.price;
+    stock._changePct = emData ? emData.changePct : ((txData.price - txData.prevClose) / txData.prevClose * 100);
+    stock._prevClose = txData.prevClose;
+    stock._name = txData.name || stock.name;
     stock.limitUp = emData ? emData.limitUp : null;
     stock.limitDown = emData ? emData.limitDown : null;
+    stock._marketValue = stock._price * (stock._shares || 0);
+    hasUpdate = true;
 
-    const triggers = checkAlerts(stock, data.price);
+    const triggers = checkAlerts(stock, txData.price);
     for (const t of triggers) {
       if (!stock.alertTypes.includes(t.type)) continue;
       lastAlertTime[t.key] = Date.now();
       const typeEmoji = { '涨停':'🔴', '跌停':'🟢', '急拉':'⚡', '急跌':'💧' };
       const msg = `${stock._name || stock.name}(${stock.code}) 触发 ${typeEmoji[t.type]||''}${t.type}预警`;
-      const detail = `当前价格 ${data.price} · ${new Date().toLocaleString()}`;
+      const detail = `当前价格 ${txData.price} · ${new Date().toLocaleString()}`;
       toast(msg + '，' + detail);
-      addAlertLog(stock, t.type + '预警', data.price);
+      addAlertLog(stock, t.type + '预警', txData.price);
       addNotification('alert', msg, detail);
       sendNotify('⚡ 大盘温度计', msg + '\n' + detail);
       playAlertSound();
     }
   }
+  if (hasUpdate) { savePosStocks(stocks); }
   renderPosList();
 }
 
@@ -1194,6 +1211,8 @@ function renderPosList() {
   const avgGrade = Math.round(grades.reduce((a,b)=>a+b,0) / grades.length);
   const avgLabel = ['A','B','C','D','E'][Math.min(avgGrade,4)];
   summaryEl.innerHTML = `共 <strong>${stocks.length}</strong> 只 · 组合评级 <strong style="color:var(--gold)">${avgLabel}级</strong> · <span style="font-size:18px;font-weight:800;color:var(--gold)">持仓市值 ¥${fmtMoney(totalMV)}</span>`;
+  recordMV();
+  drawMVChart();
 
   listEl.innerHTML = stocks.map((s, i) => {
     const weekChg = s._weekChg || 0;
@@ -1417,7 +1436,7 @@ function switchTab(idx) {
   $$('.tab-content').forEach((el, i) => el.classList.toggle('active', i === idx));
   $$('.nav-item').forEach((el, i) => el.classList.toggle('active', i === idx));
   if (idx === 0) updateSentiment();
-  if (idx === 1) { renderPosList(); updatePositionData(); }
+  if (idx === 1) { renderPosList(); updatePositionData(); drawMVChart(); }
   if (idx === 2) { updateAccount(); drawAssetChart(); }
   if (idx === 3) updateMineTab();
 }
@@ -1651,7 +1670,9 @@ function autoCloudSync() {
       pos_stocks: getPosStocksNS(),
       cash: getCashNS(),
       alert_logs: getAlertLogsNS(),
-      asset_history: getAssetHistory()
+      asset_history: getAssetHistory(),
+      memo: nsGet('memo') || '',
+      mv_history: getMVHistory()
     });
   }, 5000);
 }
@@ -1717,13 +1738,18 @@ async function verifyCode() {
     if (cloudData.cash != null) saveCashNS(cloudData.cash);
     if (cloudData.alert_logs) saveAlertLogsNS(cloudData.alert_logs);
     if (cloudData.asset_history) saveAssetHistory(cloudData.asset_history);
+    if (cloudData.memo) nsSet('memo', cloudData.memo);
+    if (cloudData.mv_history) saveMVHistory(cloudData.mv_history);
+    loadMemo();
     toast('登录成功，数据已从云端同步');
   } else {
     await cloudSet(phone, {
       pos_stocks: getPosStocksNS(),
       cash: getCashNS(),
       alert_logs: getAlertLogsNS(),
-      asset_history: getAssetHistory()
+      asset_history: getAssetHistory(),
+      memo: nsGet('memo') || '',
+      mv_history: getMVHistory()
     });
     toast('首次登录，数据已上传云端');
   }
@@ -1747,6 +1773,53 @@ function installApp() {
   } else {
     toast('请在Chrome浏览器打开此页面，然后点右上角⋮ → 添加到主屏幕');
   }
+}
+
+// ==================== 备忘录 ====================
+function saveMemo() {
+  const memo = $('#memoInput').value;
+  nsSet('memo', memo);
+  autoCloudSync();
+}
+function loadMemo() {
+  const memo = nsGet('memo') || '';
+  $('#memoInput').value = memo;
+}
+
+// ==================== 市值趋势 ====================
+function getMVHistory() { return nsGetArr('mv_history'); }
+function saveMVHistory(list) { if (list.length > 90) list = list.slice(-90); nsSet('mv_history', list); }
+
+function recordMV() {
+  const totalMV = getTotalMarketValue();
+  if (totalMV <= 0) return;
+  const history = getMVHistory();
+  const today = new Date().toISOString().slice(5, 10);
+  const last = history[history.length - 1];
+  if (!last || last.date !== today) {
+    history.push({ date: today, value: Math.round(totalMV) });
+    saveMVHistory(history);
+  } else {
+    last.value = Math.round(totalMV);
+    saveMVHistory(history);
+  }
+}
+
+function drawMVChart() {
+  const history = getMVHistory();
+  if (history.length < 2) {
+    const canvas = $('#mvChart');
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#8899aa';
+      ctx.font = '12px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('添加持仓后自动记录', canvas.width/4, 100);
+    }
+    return;
+  }
+  drawLineChart('#mvChart', history, null);
 }
 
 function saveSyncToken() {
@@ -1805,6 +1878,7 @@ function init() {
   const savedToken = getSyncToken();
   if (savedToken) { $('#syncTokenInput').value = savedToken; $('#syncStatus').innerHTML = '<span style="color:var(--down)">✅ 已设置</span>'; }
   updateMineTab();
+  loadMemo();
   loadAccount();
   drawAssetChart();
   updateNotifyBadge();
@@ -1875,7 +1949,7 @@ const App = {
   updateAccount, updateSentiment, updatePositionData,
   updateShares, updateCost,
   requestNotify, toggleTheme, refreshData, openNotify, closeNotify,
-  sendCode, verifyCode, doLogout, saveSyncToken, installApp
+  sendCode, verifyCode, doLogout, saveSyncToken, installApp, saveMemo
 };
 
 document.addEventListener('DOMContentLoaded', init);
