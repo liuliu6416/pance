@@ -231,7 +231,6 @@ body{
     <div class="header-title"><span class="icon">🌡️</span>大盘温度计</div>
     <div style="display:flex;align-items:center;gap:10px">
       <span onclick="App.toggleTheme()" id="themeBtn" style="font-size:20px;cursor:pointer;padding:6px 8px;line-height:1">🌙</span>
-      <span onclick="App.refreshData()" style="font-size:20px;cursor:pointer;padding:6px 8px;line-height:1">🔄</span>
       <span onclick="App.openNotify()" style="font-size:20px;cursor:pointer;padding:6px 8px;line-height:1;position:relative">
         🔔<span class="notify-badge" id="notifyBadge" style="display:none">0</span>
       </span>
@@ -1809,7 +1808,7 @@ async function verifyCode() {
   updateMineTab();
 }
 
-let _appVersion = '24';
+let _appVersion = '25';
 async function checkVersion() {
   try {
     const resp = await fetch('./version.json?t=' + Date.now());
