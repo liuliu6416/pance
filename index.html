@@ -991,7 +991,19 @@ async function updateHistoryCharts() {
 // ==================== 预警模块 ====================
 const priceSnapshots = {};
 const lastAlertTime = {};
+const alertDailyCount = {};
 const ALERT_COOLDOWN = 120000;
+const ALERT_MAX_DAILY = 2;
+
+function getAlertDayKey(stockCode, type) {
+  return stockCode + '_' + type + '_' + new Date().toISOString().slice(0, 10);
+}
+function canSendAlert(stockCode, type) {
+  return (alertDailyCount[getAlertDayKey(stockCode, type)] || 0) < ALERT_MAX_DAILY;
+}
+function recordAlertSent(stockCode, type) {
+  alertDailyCount[getAlertDayKey(stockCode, type)] = (alertDailyCount[getAlertDayKey(stockCode, type)] || 0) + 1;
+}
 
 function getAlertLogs() {
   const user = getCurrentUser();
@@ -1090,7 +1102,13 @@ async function monitorPositionAlerts() {
         const triggers = checkAlerts(stock, txData.price);
         for (const t of triggers) {
           if (!stock.alertTypes.includes(t.type)) continue;
-          lastAlertTime[t.key] = Date.now();
+          const now = Date.now();
+          // 冷却检查
+          if (lastAlertTime[t.key] && now - lastAlertTime[t.key] < ALERT_COOLDOWN) continue;
+          // 每日上限检查
+          if (!canSendAlert(stock.code, t.type)) continue;
+          lastAlertTime[t.key] = now;
+          recordAlertSent(stock.code, t.type);
           const typeEmoji = { '涨停':'🔴', '跌停':'🟢', '急拉':'⚡', '急跌':'💧' };
           const msg = `${stock._name || stock.name}(${stock.code}) 触发 ${typeEmoji[t.type]||''}${t.type}预警`;
           const detail = `当前价格 ${txData.price} · ${new Date().toLocaleString()}`;
@@ -1852,7 +1870,7 @@ async function verifyCode() {
   updateMineTab();
 }
 
-let _appVersion = '31';
+let _appVersion = '32';
 async function checkVersion() {
   try {
     const resp = await fetch('./version.json?t=' + Date.now());
