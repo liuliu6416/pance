@@ -474,11 +474,6 @@ body{
 
 <div class="toast" id="toast"></div>
 
-<!-- 下拉刷新指示器 -->
-<div class="pull-indicator" id="pullIndicator">
-  <div class="pull-spinner" id="pullSpinner"></div>
-  <span style="font-size:12px" id="pullText">下拉刷新行情</span>
-</div>
 
 <script>
 // ==================== 配置 ====================
@@ -1851,7 +1846,7 @@ async function verifyCode() {
   updateMineTab();
 }
 
-let _appVersion = '28';
+let _appVersion = '29';
 async function checkVersion() {
   try {
     const resp = await fetch('./version.json?t=' + Date.now());
@@ -2076,5 +2071,12 @@ document.addEventListener('visibilitychange', () => {
   if (!document.hidden) { updateSentiment(); updatePositionData(); }
 });
 </script>
+
+<!-- 下拉刷新指示器（在app外，不受transform影响） -->
+<div class="pull-indicator" id="pullIndicator">
+  <div class="pull-spinner" id="pullSpinner"></div>
+  <span style="font-size:12px" id="pullText">下拉刷新行情</span>
+</div>
+
 </body>
 </html>
