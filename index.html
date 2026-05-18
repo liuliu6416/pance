@@ -1040,42 +1040,56 @@ function checkAlerts(stock, currentPrice) {
   return triggers;
 }
 
+let _monitorRunning = false;
 async function monitorPositionAlerts() {
-  const stocks = getPosStocks();
-  let hasUpdate = false;
-  for (const stock of stocks) {
-    if (!stock.alertTypes || stock.alertTypes.length === 0) continue;
-    const txData = await fetchTxStock(stock.code);
-    if (!txData) continue;
-    const emJson = await fetchAPI(API.stock(stock.code));
-    const emData = emJson ? parseStockData(emJson) : null;
+  if (_monitorRunning) return;
+  _monitorRunning = true;
+  try {
+    const stocks = getPosStocks();
+    let hasUpdate = false;
+    for (const stock of stocks) {
+      if (!stock.alertTypes || stock.alertTypes.length === 0) continue;
+      try {
+        const txData = await fetchTxStock(stock.code);
+        if (!txData) continue;
+        // 每只股票间隔0.5秒，避免请求过快被封
+        await new Promise(r => setTimeout(r, 500));
 
-    updatePriceSnapshot(stock.code, txData.price);
-    stock._price = txData.price;
-    stock._changePct = emData ? emData.changePct : ((txData.price - txData.prevClose) / txData.prevClose * 100);
-    stock._prevClose = txData.prevClose;
-    stock._name = txData.name || stock.name;
-    stock.limitUp = emData ? emData.limitUp : null;
-    stock.limitDown = emData ? emData.limitDown : null;
-    stock._marketValue = stock._price * (stock._shares || 0);
-    hasUpdate = true;
+        const emJson = await fetchAPI(API.stock(stock.code));
+        const emData = emJson ? parseStockData(emJson) : null;
 
-    const triggers = checkAlerts(stock, txData.price);
-    for (const t of triggers) {
-      if (!stock.alertTypes.includes(t.type)) continue;
-      lastAlertTime[t.key] = Date.now();
-      const typeEmoji = { '涨停':'🔴', '跌停':'🟢', '急拉':'⚡', '急跌':'💧' };
-      const msg = `${stock._name || stock.name}(${stock.code}) 触发 ${typeEmoji[t.type]||''}${t.type}预警`;
-      const detail = `当前价格 ${txData.price} · ${new Date().toLocaleString()}`;
-      toast(msg + '，' + detail);
-      addAlertLog(stock, t.type + '预警', txData.price);
-      addNotification('alert', msg, detail);
-      sendNotify('⚡ 大盘温度计', msg + '\n' + detail);
-      playAlertSound();
+        updatePriceSnapshot(stock.code, txData.price);
+        stock._price = txData.price;
+        stock._changePct = emData ? emData.changePct : ((txData.price - txData.prevClose) / txData.prevClose * 100);
+        stock._prevClose = txData.prevClose;
+        stock._name = txData.name || stock.name;
+        stock.limitUp = emData ? emData.limitUp : null;
+        stock.limitDown = emData ? emData.limitDown : null;
+        stock._marketValue = stock._price * (stock._shares || 0);
+        hasUpdate = true;
+
+        const triggers = checkAlerts(stock, txData.price);
+        for (const t of triggers) {
+          if (!stock.alertTypes.includes(t.type)) continue;
+          lastAlertTime[t.key] = Date.now();
+          const typeEmoji = { '涨停':'🔴', '跌停':'🟢', '急拉':'⚡', '急跌':'💧' };
+          const msg = `${stock._name || stock.name}(${stock.code}) 触发 ${typeEmoji[t.type]||''}${t.type}预警`;
+          const detail = `当前价格 ${txData.price} · ${new Date().toLocaleString()}`;
+          toast(msg + '，' + detail);
+          addAlertLog(stock, t.type + '预警', txData.price);
+          addNotification('alert', msg, detail);
+          sendNotify('⚡ 大盘温度计', msg + '\n' + detail);
+          playAlertSound();
+        }
+      } catch(e) {}
     }
+    if (hasUpdate) { savePosStocks(stocks); }
+    renderPosList();
+    $('#statusBar').innerHTML = '<span class="dot" style="background:var(--down)"></span>数据正常';
+  } catch(e) {
+    $('#statusBar').innerHTML = '<span class="dot" style="background:var(--orange)"></span>数据异常';
   }
-  if (hasUpdate) { savePosStocks(stocks); }
-  renderPosList();
+  _monitorRunning = false;
 }
 
 // ==================== 持仓模块（含预警、数量、市值、占比） ====================
@@ -1543,15 +1557,14 @@ function closeNotify() {
 }
 
 function doUpdate() {
-  navigator.serviceWorker.getRegistrations().then((regs) => {
-    regs.forEach((reg) => {
-      if (reg.waiting) reg.waiting.postMessage('SKIP_WAITING');
+  // 清除缓存并刷新
+  if ('caches' in window) {
+    caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k)))).then(() => {
+      window.location.reload();
     });
-  });
-  // 强制刷新到最新版本
-  caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k)))).then(() => {
+  } else {
     window.location.reload();
-  });
+  }
 }
 window.doUpdate = doUpdate;
 async function refreshData() {
@@ -1756,6 +1769,21 @@ async function verifyCode() {
   updateMineTab();
 }
 
+let _appVersion = '22';
+async function checkVersion() {
+  try {
+    const resp = await fetch('./version.json?t=' + Date.now());
+    const data = await resp.json();
+    const stored = localStorage.getItem('pance_version');
+    if (data.version !== stored && stored) {
+      addNotification('update', '版本更新就绪 V' + data.version, '新版本已发布，点击立即更新');
+      updateNotifyBadge();
+    }
+    localStorage.setItem('pance_version', data.version);
+    _appVersion = data.version;
+  } catch(e) {}
+}
+
 function checkUpdate() {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistration().then((reg) => {
@@ -1874,6 +1902,8 @@ function updateMineTab() {
 // ==================== 初始化 ====================
 function init() {
   applyTheme(getTheme());
+  // 版本检查（不依赖SW）
+  checkVersion();
   updateMineTab();
   loadMemo();
   loadAccount();
