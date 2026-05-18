@@ -192,13 +192,16 @@ body{
 .search-result:active{background:var(--card-hover)}
 /* 下拉刷新指示器 */
 .pull-indicator{
-  position:fixed;top:-80px;left:50%;transform:translateX(-50%);z-index:90;
+  position:fixed;top:58px;left:50%;transform:translateX(-50%);z-index:95;
   display:flex;align-items:center;justify-content:center;gap:10px;
-  color:var(--text2);font-size:12px;transition:top 0.2s ease;
-  background:var(--bg);padding:14px 24px;border-radius:0 0 20px 20px;
-  max-width:420px;width:100%;box-shadow:0 2px 12px rgba(0,0,0,0.15);
+  color:var(--text2);font-size:12px;transition:opacity 0.3s,height 0.3s;
+  background:var(--bg);padding:0 24px;border-radius:0 0 20px 20px;
+  max-width:420px;width:100%;height:0;overflow:hidden;opacity:0;
 }
-.pull-indicator.show{top:55px}
+.pull-indicator.show{
+  height:44px;padding:12px 24px;opacity:1;
+  box-shadow:0 2px 12px rgba(0,0,0,0.15);
+}
 .pull-spinner{
   width:18px;height:18px;border:2px solid rgba(255,255,255,0.12);
   border-top-color:var(--gold);border-radius:50%;
@@ -1614,35 +1617,37 @@ let _pullStart = 0;
 let _pullDist = 0;
 let _pullDone = false;
 
-const appEl = document.getElementById('app');
-appEl.addEventListener('touchstart', (e) => {
-  if (document.documentElement.scrollTop < 5 && document.body.scrollTop < 5) {
+document.addEventListener('touchstart', (e) => {
+  const st = document.documentElement.scrollTop || document.body.scrollTop || window.scrollY;
+  if (st < 10) {
     _pullStart = e.touches[0].clientY;
     _pullDist = 0;
     _pullDone = false;
   }
 }, { passive: true });
 
-appEl.addEventListener('touchmove', (e) => {
+document.addEventListener('touchmove', (e) => {
   if (_pullStart === 0 || _pullDone) return;
   _pullDist = e.touches[0].clientY - _pullStart;
-  const indicator = $('#pullIndicator');
-  if (_pullDist > 30) {
-    indicator.classList.add('show');
+  if (_pullDist > 40) {
+    const ind = document.getElementById('pullIndicator');
+    if (ind) ind.classList.add('show');
+    const sp = document.getElementById('pullSpinner');
+    const txt = document.getElementById('pullText');
     if (_pullDist > 100) {
-      $('#pullSpinner').style.transform = 'rotate(180deg)';
-      $('#pullText').textContent = '松开立即刷新';
-    } else if (_pullDist > 60) {
-      $('#pullSpinner').style.transform = 'rotate(90deg)';
-      $('#pullText').textContent = '继续下拉';
+      if (sp) sp.style.transform = 'rotate(180deg)';
+      if (txt) txt.textContent = '松开立即刷新';
+    } else if (_pullDist > 70) {
+      if (sp) sp.style.transform = 'rotate(90deg)';
+      if (txt) txt.textContent = '继续下拉';
     } else {
-      $('#pullSpinner').style.transform = 'rotate(0deg)';
-      $('#pullText').textContent = '下拉刷新行情';
+      if (sp) sp.style.transform = 'rotate(0deg)';
+      if (txt) txt.textContent = '下拉刷新行情';
     }
   }
 }, { passive: true });
 
-appEl.addEventListener('touchend', async () => {
+document.addEventListener('touchend', async () => {
   if (_pullDist > 80) {
     _pullDone = true;
     await quickRefresh();
@@ -1846,7 +1851,7 @@ async function verifyCode() {
   updateMineTab();
 }
 
-let _appVersion = '29';
+let _appVersion = '30';
 async function checkVersion() {
   try {
     const resp = await fetch('./version.json?t=' + Date.now());
