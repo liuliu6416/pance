@@ -190,6 +190,18 @@ body{
 .notify-overlay.show{display:block}
 .search-result{background:var(--card);border-radius:var(--radius);padding:14px;margin-top:8px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;border:1px solid var(--border)}
 .search-result:active{background:var(--card-hover)}
+/* 浮动刷新按钮 */
+.float-refresh{
+  position:fixed;bottom:90px;right:16px;z-index:150;
+  width:60px;height:60px;border-radius:30px;
+  background:var(--gold);color:#1a1a2e;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;box-shadow:0 4px 16px rgba(240,192,64,0.3);
+  font-weight:700;user-select:none;transition:transform 0.2s;
+}
+.float-refresh:active{transform:scale(0.9)}
+.float-refresh .spinning{animation:spin 0.8s linear infinite}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 .alert-log{font-size:12px;color:var(--text2);max-height:220px;overflow-y:auto}
 .alert-log-item{padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;justify-content:space-between}
 .empty-state{text-align:center;padding:40px 20px;color:var(--text2)}
@@ -459,6 +471,12 @@ body{
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- 浮动刷新按钮 -->
+<div class="float-refresh" id="floatRefresh" onclick="App.quickRefresh()">
+  <span id="refreshIcon">🔄</span>
+  <span style="font-size:10px;display:block" id="refreshLabel">刷新行情</span>
+</div>
 
 <script>
 // ==================== 配置 ====================
@@ -1567,15 +1585,37 @@ function doUpdate() {
   }
 }
 window.doUpdate = doUpdate;
+let _refreshCount = 0;
+async function quickRefresh() {
+  const icon = $('#refreshIcon');
+  const label = $('#refreshLabel');
+  icon.classList.add('spinning');
+  label.textContent = '刷新中';
+  _refreshCount++;
+  const now = new Date().toLocaleTimeString();
+
+  try {
+    historyChartsLoaded = false;
+    await updateSentiment();
+    await monitorPositionAlerts();
+    await updatePositionData();
+    updateAccount();
+    drawAssetChart();
+    icon.classList.remove('spinning');
+    label.textContent = now;
+    toast('行情已更新 ' + now);
+  } catch(e) {
+    icon.classList.remove('spinning');
+    label.textContent = '重试';
+    toast('刷新失败，请重试');
+  }
+  setTimeout(() => {
+    if (_refreshCount <= 1) label.textContent = '刷新行情';
+    _refreshCount--;
+  }, 3000);
+}
 async function refreshData() {
-  toast('刷新中...');
-  historyChartsLoaded = false;
-  await updateSentiment();
-  await monitorAlertStocks();
-  await updatePositionData();
-  updateAccount();
-  drawAssetChart();
-  toast('数据已刷新');
+  await quickRefresh();
 }
 
 // ==================== 账户系统（jsonblob免费云存储，零密钥） ====================
@@ -1769,7 +1809,7 @@ async function verifyCode() {
   updateMineTab();
 }
 
-let _appVersion = '23';
+let _appVersion = '24';
 async function checkVersion() {
   try {
     const resp = await fetch('./version.json?t=' + Date.now());
@@ -1984,7 +2024,7 @@ const App = {
   removePosStock, togglePosAlertType,
   updateAccount, updateSentiment, updatePositionData,
   updateShares, updateCost,
-  requestNotify, toggleTheme, refreshData, openNotify, closeNotify,
+  requestNotify, toggleTheme, refreshData, quickRefresh, openNotify, closeNotify,
   sendCode, verifyCode, doLogout, installApp, saveMemo, checkUpdate
 };
 
