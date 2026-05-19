@@ -1303,7 +1303,11 @@ function updateShares(index, value) {
   stocks[index]._shares = parseInt(value) || 0;
   stocks[index]._marketValue = (stocks[index]._price || 0) * stocks[index]._shares;
   savePosStocks(stocks);
-  App.updateAccount();
+  clearTimeout(window._shareTimer);
+  window._shareTimer = setTimeout(() => {
+    renderPosList();
+    App.updateAccount();
+  }, 600);
 }
 
 function updateCost(index, value) {
@@ -1856,7 +1860,7 @@ async function verifyCode() {
   updateMineTab();
 }
 
-let _appVersion = '35';
+let _appVersion = '36';
 async function checkVersion() {
   try {
     const resp = await fetch('./version.json?t=' + Date.now());
