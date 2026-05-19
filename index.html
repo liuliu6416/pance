@@ -1279,11 +1279,11 @@ function renderPosList() {
       </div>
       <div class="pos-row">
         <span style="font-size:11px;color:var(--text2)">持股(股)</span>
-        <input class="input" type="number" value="${shares || ''}" placeholder="数量"
-          oninput="App.updateShares(${i}, this.value)" style="font-size:12px;padding:6px 8px">
+        <input class="input share-input" type="number" value="${shares || ''}" placeholder="数量"
+          data-idx="${i}" style="font-size:12px;padding:6px 8px">
         <span style="font-size:12px;color:var(--text2)">市值 <strong style="color:var(--text)">¥${fmtMoney(mv)}</strong></span>
         <span style="font-size:11px;color:var(--gold)">占比 ${weight}%</span>
-        <button class="btn btn-sm btn-danger" onclick="App.removePosStock(${i})">删</button>
+        <button class="btn btn-sm btn-danger" data-idx="${i}" onclick="App.removePosStock(${i})">删</button>
       </div>
       <div class="pos-stats">
         <span>周 <span class="${weekChg>=0?'up':'down'}">${fmtPct(weekChg)}</span></span>
@@ -1302,6 +1302,14 @@ function updateShares(index, value) {
   savePosStocks(stocks);
   App.updateAccount();
 }
+
+// 事件委托：监听所有持股输入框
+document.addEventListener('input', function(e) {
+  if (e.target.classList.contains('share-input')) {
+    const idx = parseInt(e.target.getAttribute('data-idx'));
+    updateShares(idx, e.target.value);
+  }
+});
 
 function updateCost(index, value) {
   const stocks = getPosStocks();
@@ -1853,7 +1861,7 @@ async function verifyCode() {
   updateMineTab();
 }
 
-let _appVersion = '41';
+let _appVersion = '42';
 async function checkVersion() {
   try {
     const resp = await fetch('./version.json?t=' + Date.now());
