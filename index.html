@@ -1263,12 +1263,6 @@ function renderPosList() {
     const mv = s._marketValue || 0;
     const weight = totalMV > 0 ? ((mv / totalMV) * 100).toFixed(1) : '0';
     const shares = s._shares || 0;
-    const cost = s._cost || 0;
-    // 盈亏计算
-    const profitAmt = cost > 0 && shares > 0 ? (price - cost) * shares : 0;
-    const profitPct = cost > 0 ? ((price - cost) / cost * 100) : 0;
-    const profitCls = profitAmt >= 0 ? 'up' : 'down';
-    const profitSign = profitAmt >= 0 ? '+' : '';
     return `
     <div class="stock-item" style="flex-direction:column;align-items:stretch">
       <div style="display:flex;align-items:center;justify-content:space-between">
@@ -1288,17 +1282,11 @@ function renderPosList() {
         </div>
       </div>
       <div class="pos-row">
-        <span style="font-size:10px;color:var(--text2)">成本</span>
-        <input class="input" type="number" value="${cost || ''}" placeholder="买入价"
-          onchange="App.updateCost(${i}, this.value)" style="font-size:11px;padding:5px 6px;width:70px;flex:0 0 70px">
-        <span style="font-size:10px;color:var(--text2)">持股</span>
+        <span style="font-size:11px;color:var(--text2)">持股(股)</span>
         <input class="input" type="number" value="${shares || ''}" placeholder="数量"
-          oninput="App.updateShares(${i}, this.value)" style="font-size:11px;padding:5px 6px;width:65px;flex:0 0 65px">
-      </div>
-      <div class="pos-row">
-        <span style="font-size:10px;color:var(--text2)">市值 ¥${fmtMoney(mv)}</span>
-        <span style="font-size:10px;color:var(--gold)">占比 ${weight}%</span>
-        ${cost > 0 ? `<span style="font-size:10px" class="${profitCls}">盈亏 ${profitSign}¥${fmtMoney(Math.abs(profitAmt))} (${profitSign}${profitPct.toFixed(1)}%)</span>` : '<span style="font-size:10px;color:var(--text2)">输入成本算盈亏</span>'}
+          oninput="App.updateShares(${i}, this.value)" style="font-size:12px;padding:6px 8px">
+        <span style="font-size:12px;color:var(--text2)">市值 <strong style="color:var(--text)">¥${fmtMoney(mv)}</strong></span>
+        <span style="font-size:11px;color:var(--gold)">占比 ${weight}%</span>
         <button class="btn btn-sm btn-danger" onclick="App.removePosStock(${i})">删</button>
       </div>
       <div class="pos-stats">
@@ -1868,7 +1856,7 @@ async function verifyCode() {
   updateMineTab();
 }
 
-let _appVersion = '34';
+let _appVersion = '35';
 async function checkVersion() {
   try {
     const resp = await fetch('./version.json?t=' + Date.now());
