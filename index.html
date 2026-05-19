@@ -1121,7 +1121,6 @@ async function monitorPositionAlerts() {
       } catch(e) {}
     }
     if (hasUpdate) { savePosStocks(stocks); }
-    renderPosList();
     $('#statusBar').innerHTML = '<span class="dot" style="background:var(--down)"></span>数据正常';
   } catch(e) {
     $('#statusBar').innerHTML = '<span class="dot" style="background:var(--orange)"></span>数据异常';
@@ -1302,10 +1301,16 @@ function updateShares(index, value) {
   try {
     const stocks = getPosStocks();
     if (!stocks[index]) return;
-    stocks[index]._shares = parseInt(value) || 0;
-    stocks[index]._marketValue = (stocks[index]._price || 0) * stocks[index]._shares;
+    const num = parseInt(value) || 0;
+    stocks[index]._shares = num;
+    stocks[index]._marketValue = (stocks[index]._price || 0) * num;
     savePosStocks(stocks);
-  } catch(e) {}
+    // 确认保存成功
+    const verify = getPosStocks();
+    if (verify[index] && verify[index]._shares === num) {
+      // toast('已保存 ' + num + ' 股');
+    }
+  } catch(e) { toast('保存失败: ' + e.message); }
 }
 
 function updateCost(index, value) {
@@ -1858,7 +1863,7 @@ async function verifyCode() {
   updateMineTab();
 }
 
-let _appVersion = '39';
+let _appVersion = '40';
 async function checkVersion() {
   try {
     const resp = await fetch('./version.json?t=' + Date.now());
