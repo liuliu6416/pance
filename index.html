@@ -1302,7 +1302,13 @@ function updateShares(index, value) {
   const stocks = getPosStocks();
   stocks[index]._shares = parseInt(value) || 0;
   stocks[index]._marketValue = (stocks[index]._price || 0) * stocks[index]._shares;
-  savePosStocks(stocks);
+  // 直接写localStorage确保保存
+  const user = getCurrentUser();
+  if (user && user.phone) {
+    savePosStocksNS(stocks);
+  } else {
+    localStorage.setItem(STORAGE_KEY.positionStocks, JSON.stringify(stocks));
+  }
   App.updateAccount();
   // 局部更新市值和占比，不重建整个列表
   const totalMV = stocks.reduce((sum, s) => sum + (s._marketValue || 0), 0);
@@ -1880,7 +1886,7 @@ async function verifyCode() {
   updateMineTab();
 }
 
-let _appVersion = '37';
+let _appVersion = '38';
 async function checkVersion() {
   try {
     const resp = await fetch('./version.json?t=' + Date.now());
