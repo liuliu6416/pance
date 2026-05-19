@@ -1299,41 +1299,13 @@ function renderPosList() {
 }
 
 function updateShares(index, value) {
-  const stocks = getPosStocks();
-  stocks[index]._shares = parseInt(value) || 0;
-  stocks[index]._marketValue = (stocks[index]._price || 0) * stocks[index]._shares;
-  // 直接写localStorage确保保存
-  const user = getCurrentUser();
-  if (user && user.phone) {
-    savePosStocksNS(stocks);
-  } else {
-    localStorage.setItem(STORAGE_KEY.positionStocks, JSON.stringify(stocks));
-  }
-  App.updateAccount();
-  // 局部更新市值和占比，不重建整个列表
-  const totalMV = stocks.reduce((sum, s) => sum + (s._marketValue || 0), 0);
-  const weight = totalMV > 0 ? ((stocks[index]._marketValue / totalMV) * 100).toFixed(1) : '0';
-  const items = document.querySelectorAll('#posStockList .stock-item');
-  if (items[index]) {
-    const rows = items[index].querySelectorAll('.pos-row span');
-    // 更新市值和占比文字
-    rows.forEach(span => {
-      if (span.textContent.startsWith('市值')) {
-        span.innerHTML = '市值 <strong style=\"color:var(--text)\">¥' + fmtMoney(stocks[index]._marketValue) + '</strong>';
-      }
-      if (span.textContent.startsWith('占比')) {
-        span.textContent = '占比 ' + weight + '%';
-      }
-    });
-    // 更新顶部汇总
-    const summaryEl = document.getElementById('posSummary');
-    if (summaryEl && totalMV > 0) {
-      const gradeMatch = summaryEl.innerHTML.match(/持仓市值.*/);
-      if (gradeMatch) {
-        summaryEl.innerHTML = summaryEl.innerHTML.replace(/持仓市值.*/, '持仓市值 ¥' + fmtMoney(totalMV));
-      }
-    }
-  }
+  try {
+    const stocks = getPosStocks();
+    if (!stocks[index]) return;
+    stocks[index]._shares = parseInt(value) || 0;
+    stocks[index]._marketValue = (stocks[index]._price || 0) * stocks[index]._shares;
+    savePosStocks(stocks);
+  } catch(e) {}
 }
 
 function updateCost(index, value) {
@@ -1886,7 +1858,7 @@ async function verifyCode() {
   updateMineTab();
 }
 
-let _appVersion = '38';
+let _appVersion = '39';
 async function checkVersion() {
   try {
     const resp = await fetch('./version.json?t=' + Date.now());
