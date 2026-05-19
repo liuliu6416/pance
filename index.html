@@ -1317,6 +1317,33 @@ window._saveShare = function(el) {
       stocks[idx]._shares = val;
       stocks[idx]._marketValue = (stocks[idx]._price || 0) * val;
       localStorage.setItem(key, JSON.stringify(stocks));
+      // 更新当前行的市值显示
+      var row = el.closest('.stock-item');
+      if (row) {
+        var mv = stocks[idx]._marketValue;
+        var spans = row.querySelectorAll('.pos-row span');
+        spans.forEach(function(s) {
+          if (s.textContent.indexOf('市值') === 0) {
+            s.innerHTML = '市值 <strong style="color:var(--text)">¥' + (mv || 0).toFixed(2) + '</strong>';
+          }
+        });
+        // 更新所有行的占比
+        var totalMV = stocks.reduce(function(sum, s) { return sum + (s._marketValue || 0); }, 0);
+        var allRows = document.querySelectorAll('#posStockList .stock-item');
+        allRows.forEach(function(r, ri) {
+          if (stocks[ri] && totalMV > 0) {
+            var w = (stocks[ri]._marketValue / totalMV * 100).toFixed(1);
+            r.querySelectorAll('.pos-row span').forEach(function(ss) {
+              if (ss.textContent.indexOf('占比') === 0) ss.textContent = '占比 ' + w + '%';
+            });
+          }
+        });
+        // 更新顶部汇总
+        var sumEl = document.getElementById('posSummary');
+        if (sumEl && totalMV > 0) {
+          sumEl.innerHTML = sumEl.innerHTML.replace(/持仓市值 [¥\d.,]+/, '持仓市值 ¥' + totalMV.toFixed(2));
+        }
+      }
     }
   } catch(e) {}
 };
@@ -1879,7 +1906,7 @@ async function verifyCode() {
   updateMineTab();
 }
 
-let _appVersion = '44';
+let _appVersion = '45';
 async function checkVersion() {
   try {
     const resp = await fetch('./version.json?t=' + Date.now());
