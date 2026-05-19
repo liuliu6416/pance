@@ -1315,7 +1315,6 @@ function updateShares(index, value) {
   stocks[index]._shares = parseInt(value) || 0;
   stocks[index]._marketValue = (stocks[index]._price || 0) * stocks[index]._shares;
   savePosStocks(stocks);
-  renderPosList();
   App.updateAccount();
 }
 
@@ -1323,7 +1322,6 @@ function updateCost(index, value) {
   const stocks = getPosStocks();
   stocks[index]._cost = parseFloat(value) || 0;
   savePosStocks(stocks);
-  renderPosList();
 }
 
 // ==================== 仓位模块（整合持仓） ====================
@@ -1870,7 +1868,7 @@ async function verifyCode() {
   updateMineTab();
 }
 
-let _appVersion = '33';
+let _appVersion = '34';
 async function checkVersion() {
   try {
     const resp = await fetch('./version.json?t=' + Date.now());
