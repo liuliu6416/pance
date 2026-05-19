@@ -1202,8 +1202,8 @@ async function updatePositionData() {
     stock._marketValue = stock._price * stock._shares;
   }
 
-  // 按持仓市值降序排列
-  stocks.sort((a, b) => (b._marketValue || 0) - (a._marketValue || 0));
+  // 按添加顺序排列
+  stocks.sort((a, b) => (a.addedAt || 0) - (b.addedAt || 0));
   savePosStocks(stocks);
   renderPosList();
   App.updateAccount(); // 同步更新仓位页
@@ -1293,7 +1293,7 @@ function renderPosList() {
           onchange="App.updateCost(${i}, this.value)" style="font-size:11px;padding:5px 6px;width:70px;flex:0 0 70px">
         <span style="font-size:10px;color:var(--text2)">持股</span>
         <input class="input" type="number" value="${shares || ''}" placeholder="数量"
-          onchange="App.updateShares(${i}, this.value)" style="font-size:11px;padding:5px 6px;width:65px;flex:0 0 65px">
+          oninput="App.updateShares(${i}, this.value)" style="font-size:11px;padding:5px 6px;width:65px;flex:0 0 65px">
       </div>
       <div class="pos-row">
         <span style="font-size:10px;color:var(--text2)">市值 ¥${fmtMoney(mv)}</span>
@@ -1870,7 +1870,7 @@ async function verifyCode() {
   updateMineTab();
 }
 
-let _appVersion = '32';
+let _appVersion = '33';
 async function checkVersion() {
   try {
     const resp = await fetch('./version.json?t=' + Date.now());
