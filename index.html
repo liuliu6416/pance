@@ -1295,12 +1295,15 @@ function renderPosList() {
 }
 
 function updateShares(index, value) {
-  const stocks = getPosStocks();
-  if (!stocks[index]) return;
-  stocks[index]._shares = parseInt(value) || 0;
-  stocks[index]._marketValue = (stocks[index]._price || 0) * stocks[index]._shares;
-  savePosStocks(stocks);
-  App.updateAccount();
+  try {
+    const key = STORAGE_KEY.positionStocks;
+    let stocks = [];
+    try { stocks = JSON.parse(localStorage.getItem(key)) || []; } catch(e) {}
+    if (!stocks[index]) return;
+    stocks[index]._shares = parseInt(value) || 0;
+    stocks[index]._marketValue = (stocks[index]._price || 0) * stocks[index]._shares;
+    localStorage.setItem(key, JSON.stringify(stocks));
+  } catch(e) {}
 }
 
 // 事件委托：监听所有持股输入框
@@ -1861,7 +1864,7 @@ async function verifyCode() {
   updateMineTab();
 }
 
-let _appVersion = '42';
+let _appVersion = '43';
 async function checkVersion() {
   try {
     const resp = await fetch('./version.json?t=' + Date.now());
