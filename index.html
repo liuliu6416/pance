@@ -1829,7 +1829,7 @@ async function verifyCode() {
   updateMineTab();
 }
 
-let _appVersion = '50';
+let _appVersion = '51';
 async function checkVersion() {
   try {
     const resp = await fetch('./version.json?t=' + Date.now());
@@ -2008,17 +2008,17 @@ function renderSubAccounts() {
     return '<div style="background:var(--card);border-radius:8px;padding:10px;margin-bottom:6px;border:1px solid var(--border)">' +
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">' +
         '<span style="font-weight:600;font-size:13px;color:var(--gold)">📂 账户' + acct + '</span>' +
-        '<button class="btn btn-sm btn-danger" onclick="deleteSubAccount('' + acct + '')" style="padding:2px 8px;font-size:10px">✕</button>' +
+        '<button class="btn btn-sm btn-danger" onclick="deleteSubAccount(\'' + acct + '\')" style="padding:2px 8px;font-size:10px">✕</button>' +
       '</div>' +
       '<div style="display:flex;align-items:center;gap:6px;font-size:11px;flex-wrap:wrap">' +
         '<span style="color:var(--text2);white-space:nowrap">现金</span>' +
-        '<input class="input" type="number" value="' + (a.cash||'') + '" placeholder="0" onchange="updateSubAccount('' + acct + '','cash',this.value)" style="padding:3px 5px;font-size:11px;width:70px;flex:0 0 70px">' +
+        '<input class="input" type="number" value="' + (a.cash||'') + '" placeholder="0" onchange="updateSubAccount(\'' + acct + '\',\'cash\',this.value)" style="padding:3px 5px;font-size:11px;width:70px;flex:0 0 70px">' +
         '<span style="color:var(--text2);white-space:nowrap">市值</span>' +
-        '<input class="input" type="number" value="' + (a.holding||'') + '" placeholder="0" onchange="updateSubAccount('' + acct + '','holding',this.value)" style="padding:3px 5px;font-size:11px;width:70px;flex:0 0 70px">' +
+        '<input class="input" type="number" value="' + (a.holding||'') + '" placeholder="0" onchange="updateSubAccount(\'' + acct + '\',\'holding\',this.value)" style="padding:3px 5px;font-size:11px;width:70px;flex:0 0 70px">' +
         '<span style="color:var(--text2);white-space:nowrap">资产 ¥' + asset.toLocaleString() + '</span>' +
         '<span style="color:var(--gold);white-space:nowrap;font-weight:600">占比 ' + pct + '%</span>' +
       '</div>' +
-      '<input class="input" type="text" value="' + (a.memo||'').replace(/"/g,'&quot;') + '" placeholder="备注（股票名称/代码等）" onchange="updateSubAccount('' + acct + '','memo',this.value)" style="margin-top:4px;padding:3px 6px;font-size:10px;width:100%">' +
+      '<input class="input" type="text" value="' + (a.memo||'') + '" placeholder="备注（股票名称/代码等）" onchange="updateSubAccount(\'' + acct + '\',\'memo\',this.value)" style="margin-top:4px;padding:3px 6px;font-size:10px;width:100%">' +
     '</div>';
   }).join('') +
   '<button class="btn btn-sm btn-outline" onclick="addSubAccount()" style="width:100%;margin-top:4px">+ 添加账户</button>';
