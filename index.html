@@ -305,86 +305,35 @@ body{
     </div>
   </div>
 
-  <!-- Tab 1: 持仓预警 -->
-  <div class="tab-content" id="tab-position">
-    <div class="card" style="margin-bottom:8px">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <span style="font-size:13px;font-weight:600">🔔 预警通知</span>
-        <span id="notifyStatus" style="font-size:11px;color:var(--orange)">未开启</span>
-      </div>
-      <div style="font-size:11px;color:var(--text2);margin-top:4px">
-        持仓个股默认监控涨停/跌停/急拉2%/急跌2%，触发后推送通知
-      </div>
-      <button class="btn btn-sm btn-outline" onclick="App.requestNotify()" style="margin-top:8px" id="notifyBtn">开启系统通知</button>
-    </div>
-    <div class="input-row">
-      <input class="input" id="posSearchInput" placeholder="输入股票代码，如 600519" autocomplete="off">
-      <button class="btn" onclick="App.searchStock()">搜索添加</button>
-    </div>
-    <div id="posSearchResult"></div>
-    <div style="font-size:12px;color:var(--text2);margin-bottom:8px" id="posSummary"></div>
-    <div class="card" style="padding:12px;margin-bottom:12px">
-      <div class="card-header">📈 持仓市值趋势</div>
-      <canvas id="mvChart" width="400" height="200" style="width:100%;height:200px"></canvas>
-    </div>
-    <div id="posStockList"></div>
-    <div id="posEmpty" class="empty-state">
-      <div class="empty-icon">📈</div>
-      <div class="empty-text">暂无持仓股票<br>上方搜索代码添加<br>默认开启涨停/跌停/急拉/急跌预警</div>
-    </div>
-    <div class="card" style="margin-top:12px">
-      <div class="card-header">📋 预警记录</div>
-      <div class="alert-log" id="alertLog"><span style="color:var(--text2)">暂无预警记录</span></div>
-    </div>
-  </div>
-
-  <!-- Tab 2: 仓位安全 -->
+  <!-- Tab 1: 仓位安全 -->
   <div class="tab-content" id="tab-account">
-    <div class="card" style="text-align:center">
-      <div class="ring-wrap">
-        <canvas class="ring-canvas" id="ringCanvas" width="220" height="220"></canvas>
-        <div class="ring-center">
-          <div class="ring-percent" id="ringPercent">0%</div>
-          <div class="ring-label">当前仓位</div>
-        </div>
-      </div>
-      <div style="text-align:center;margin-top:4px">
-        <span id="safetyBadge" style="font-size:16px;font-weight:700">--</span>
-      </div>
-      <div style="font-size:13px;color:var(--text2);text-align:center;margin-top:8px;line-height:1.6" id="safetyAdvice"></div>
-    </div>
     <div class="card">
-      <div class="card-header">💰 资产概览</div>
+      <div class="card-header">💰 资产总览</div>
       <div class="overview-grid">
         <div class="overview-item">
           <div class="ov-label">🏦 总资产</div>
           <div class="ov-value" style="color:var(--text)" id="totalAssetVal">--</div>
         </div>
         <div class="overview-item">
-          <div class="ov-label">💰 现金余额</div>
-          <div class="ov-value" style="color:var(--blue)" id="cashVal">--</div>
+          <div class="ov-label">💰 总现金</div>
+          <div class="ov-value" style="color:var(--blue)" id="totalCashVal">--</div>
         </div>
         <div class="overview-item">
-          <div class="ov-label">📈 持仓市值</div>
-          <div class="ov-value" style="color:var(--gold)" id="holdingVal">--</div>
+          <div class="ov-label">📈 总持仓市值</div>
+          <div class="ov-value" style="color:var(--gold)" id="totalHoldingVal">--</div>
         </div>
         <div class="overview-item">
-          <div class="ov-label">📊 仓位比例</div>
-          <div class="ov-value" id="posRatioVal">--</div>
+          <div class="ov-label">📊 总仓位占比</div>
+          <div class="ov-value" id="totalPosRatio">--</div>
         </div>
       </div>
-      <div style="margin-bottom:10px">
-        <div style="font-size:12px;color:var(--text2);margin-bottom:4px">💰 现金余额（元）</div>
-        <input class="input" id="cashInput" type="number" placeholder="如 50000" oninput="App.updateAccount()" style="width:100%;margin-bottom:8px">
-      </div>
-      <div style="font-size:11px;color:var(--text2);margin-bottom:6px">
-        📈 持仓市值自动从「持仓」页面同步（价格 × 数量）
-      </div>
     </div>
-    <div class="card">
-      <div class="card-header">📈 总资产走势</div>
-      <canvas id="assetChart" width="400" height="200" style="width:100%;height:220px"></canvas>
+
+    <div class="card" id="subAccountCard">
+      <div class="card-header">📂 子账户 <span style="font-size:10px;color:var(--text2)">（点击展开/折叠）</span></div>
+      <div id="subAccounts"></div>
     </div>
+
     <div class="card">
       <div class="card-header">📊 仓位安全标准</div>
       <div style="font-size:12px;color:var(--text2);line-height:2">
@@ -451,12 +400,9 @@ body{
       <span class="nav-icon">🧊</span><span class="nav-label">冰点</span>
     </div>
     <div class="nav-item" data-tab="1" onclick="App.switchTab(1)">
-      <span class="nav-icon">⚡</span><span class="nav-label">持仓预警</span>
-    </div>
-    <div class="nav-item" data-tab="2" onclick="App.switchTab(2)">
       <span class="nav-icon">🛡️</span><span class="nav-label">仓位</span>
     </div>
-    <div class="nav-item" data-tab="3" onclick="App.switchTab(3)">
+    <div class="nav-item" data-tab="2" onclick="App.switchTab(2)">
       <span class="nav-icon">👤</span><span class="nav-label">我的</span>
     </div>
   </nav>
@@ -508,7 +454,7 @@ const STORAGE_KEY = {
   cashBalance: 'pance_cash',
   alertLog: 'pance_alert_log'
 };
-const TABS = ['sentiment','position','account','mine'];
+const TABS = ['sentiment','account','mine'];
 
 // ==================== 工具函数 ====================
 const $ = (s) => document.querySelector(s);
@@ -1489,9 +1435,8 @@ function switchTab(idx) {
   $$('.tab-content').forEach((el, i) => el.classList.toggle('active', i === idx));
   $$('.nav-item').forEach((el, i) => el.classList.toggle('active', i === idx));
   if (idx === 0) updateSentiment();
-  if (idx === 1) { renderPosList(); updatePositionData(); drawMVChart(); }
-  if (idx === 2) { updateAccount(); drawAssetChart(); }
-  if (idx === 3) updateMineTab();
+  if (idx === 1) renderSubAccounts();
+  if (idx === 2) updateMineTab();
 }
 
 // 判断是否A股交易时段
@@ -1884,7 +1829,7 @@ async function verifyCode() {
   updateMineTab();
 }
 
-let _appVersion = '46';
+let _appVersion = '47';
 async function checkVersion() {
   try {
     const resp = await fetch('./version.json?t=' + Date.now());
@@ -2015,6 +1960,66 @@ function updateMineTab() {
 }
 
 // ==================== 初始化 ====================
+
+// ==================== 子账户系统 ====================
+const SUB_ACCOUNTS = ['A','B','C','D','F'];
+function getSubAccounts() {
+  const data = Store.get('pance_sub_accounts');
+  return data || {A:{asset:0,cash:0,holding:0},B:{asset:0,cash:0,holding:0},C:{asset:0,cash:0,holding:0},D:{asset:0,cash:0,holding:0},F:{asset:0,cash:0,holding:0}};
+}
+function saveSubAccounts(data) { Store.set('pance_sub_accounts', data); renderSubAccounts(); }
+
+function renderSubAccounts() {
+  const accounts = getSubAccounts();
+  const el = document.getElementById('subAccounts');
+  if (!el) return;
+  let totalAsset = 0, totalCash = 0, totalHolding = 0;
+  SUB_ACCOUNTS.forEach(acct => {
+    const a = accounts[acct] || {asset:0,cash:0,holding:0};
+    totalAsset += Number(a.asset) || 0;
+    totalCash += Number(a.cash) || 0;
+    totalHolding += Number(a.holding) || 0;
+  });
+
+  const ratio = totalAsset > 0 ? (totalHolding / totalAsset * 100).toFixed(1) : '0';
+  document.getElementById('totalAssetVal').textContent = '¥' + totalAsset.toLocaleString();
+  document.getElementById('totalCashVal').textContent = '¥' + totalCash.toLocaleString();
+  document.getElementById('totalHoldingVal').textContent = '¥' + totalHolding.toLocaleString();
+  document.getElementById('totalPosRatio').textContent = ratio + '%';
+  const ratioColor = ratio > 90 ? 'var(--danger)' : ratio > 80 ? 'var(--orange)' : ratio > 70 ? 'var(--blue)' : 'var(--safe)';
+  document.getElementById('totalPosRatio').style.color = ratioColor;
+
+  el.innerHTML = SUB_ACCOUNTS.map(acct => {
+    const a = accounts[acct] || {asset:0,cash:0,holding:0};
+    const pct = (Number(a.asset) || 0) > 0 ? ((Number(a.holding)||0) / (Number(a.asset)||1) * 100).toFixed(1) : '0';
+    return `<div style="background:var(--card);border-radius:10px;padding:12px;margin-bottom:8px;border:1px solid var(--border)">
+      <div style="font-weight:700;margin-bottom:8px;color:var(--gold)">📂 账户${acct}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px">
+        <div><span style="color:var(--text2)">资产</span><br>
+          <input class="input" type="number" value="${a.asset||''}" placeholder="0" 
+            onchange="updateSubAccount('${acct}','asset',this.value)" style="padding:6px 8px;font-size:12px"></div>
+        <div><span style="color:var(--text2)">现金</span><br>
+          <input class="input" type="number" value="${a.cash||''}" placeholder="0"
+            onchange="updateSubAccount('${acct}','cash',this.value)" style="padding:6px 8px;font-size:12px"></div>
+        <div><span style="color:var(--text2)">持仓市值</span><br>
+          <input class="input" type="number" value="${a.holding||''}" placeholder="0"
+            onchange="updateSubAccount('${acct}','holding',this.value)" style="padding:6px 8px;font-size:12px"></div>
+        <div><span style="color:var(--text2)">仓位占比</span><br>
+          <strong style="font-size:14px;color:var(--gold)">${pct}%</strong></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateSubAccount(acct, field, value) {
+  const accounts = getSubAccounts();
+  if (!accounts[acct]) accounts[acct] = {asset:0,cash:0,holding:0};
+  accounts[acct][field] = parseFloat(value) || 0;
+  saveSubAccounts(accounts);
+}
+window.updateSubAccount = updateSubAccount;
+
+
 function init() {
   applyTheme(getTheme());
   // 版本检查（不依赖SW）
@@ -2028,13 +2033,8 @@ function init() {
   // 检查通知权限
   checkNotify();
 
-  // 每次打开强制刷新企业名称
-  refreshStockNames().then(() => { renderPosList(); });
-
-  renderAlertLog();
-  renderPosList();
-  const posStocks = getPosStocks();
-  posStocks.forEach(s => { if (!priceSnapshots[s.code]) priceSnapshots[s.code] = []; });
+  // 渲染子账户
+  renderSubAccounts();
 
   updateSentiment();
 
@@ -2090,8 +2090,6 @@ function init() {
   }
 
   setInterval(updateSentiment, 5000);
-  setInterval(monitorPositionAlerts, 3000);
-  setInterval(updatePositionData, 60000);
 }
 
 const App = {
