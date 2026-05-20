@@ -1829,7 +1829,7 @@ async function verifyCode() {
   updateMineTab();
 }
 
-let _appVersion = '51';
+let _appVersion = '52';
 async function checkVersion() {
   try {
     const resp = await fetch('./version.json?t=' + Date.now());
@@ -2017,8 +2017,8 @@ function renderSubAccounts() {
         '<input class="input" type="number" value="' + (a.holding||'') + '" placeholder="0" onchange="updateSubAccount(\'' + acct + '\',\'holding\',this.value)" style="padding:3px 5px;font-size:11px;width:70px;flex:0 0 70px">' +
         '<span style="color:var(--text2);white-space:nowrap">资产 ¥' + asset.toLocaleString() + '</span>' +
         '<span style="color:var(--gold);white-space:nowrap;font-weight:600">占比 ' + pct + '%</span>' +
+        '<input class="input" type="text" value="' + (a.memo||'') + '" placeholder="备注" onchange="updateSubAccount(\'' + acct + '\',\'memo\',this.value)" style="padding:3px 5px;font-size:10px;width:70px;flex:0 0 70px">' +
       '</div>' +
-      '<input class="input" type="text" value="' + (a.memo||'') + '" placeholder="备注（股票名称/代码等）" onchange="updateSubAccount(\'' + acct + '\',\'memo\',this.value)" style="margin-top:4px;padding:3px 6px;font-size:10px;width:100%">' +
     '</div>';
   }).join('') +
   '<button class="btn btn-sm btn-outline" onclick="addSubAccount()" style="width:100%;margin-top:4px">+ 添加账户</button>';
