@@ -1829,7 +1829,7 @@ async function verifyCode() {
   updateMineTab();
 }
 
-let _appVersion = '48';
+let _appVersion = '49';
 async function checkVersion() {
   try {
     const resp = await fetch('./version.json?t=' + Date.now());
@@ -1995,19 +1995,17 @@ function renderSubAccounts() {
     const holding = Number(a.holding) || 0;
     const asset = cash + holding;
     const pct = asset > 0 ? (holding / asset * 100).toFixed(1) : '0';
-    return `<div style="background:var(--card);border-radius:10px;padding:12px;margin-bottom:8px;border:1px solid var(--border)">
-      <div style="font-weight:700;margin-bottom:8px;color:var(--gold)">📂 账户${acct}</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px">
-        <div><span style="color:var(--text2)">现金</span><br>
-          <input class="input" type="number" value="${a.cash||''}" placeholder="0"
-            onchange="updateSubAccount('${acct}','cash',this.value)" style="padding:6px 8px;font-size:12px"></div>
-        <div><span style="color:var(--text2)">持仓市值</span><br>
-          <input class="input" type="number" value="${a.holding||''}" placeholder="0"
-            onchange="updateSubAccount('${acct}','holding',this.value)" style="padding:6px 8px;font-size:12px"></div>
-        <div><span style="color:var(--text2)">资产</span><br>
-          <strong style="font-size:14px;color:var(--text)">¥${asset.toLocaleString()}</strong></div>
-        <div><span style="color:var(--text2)">仓位占比</span><br>
-          <strong style="font-size:14px;color:var(--gold)">${pct}%</strong></div>
+    return `<div style="background:var(--card);border-radius:8px;padding:10px;margin-bottom:6px;border:1px solid var(--border)">
+      <div style="font-weight:600;margin-bottom:4px;font-size:13px;color:var(--gold)">📂 账户${acct}</div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:11px;flex-wrap:wrap">
+        <span style="color:var(--text2);white-space:nowrap">现金</span>
+        <input class="input" type="number" value="${a.cash||''}" placeholder="0"
+          onchange="updateSubAccount('${acct}','cash',this.value)" style="padding:4px 6px;font-size:11px;width:80px;flex:0 0 80px">
+        <span style="color:var(--text2);white-space:nowrap">市值</span>
+        <input class="input" type="number" value="${a.holding||''}" placeholder="0"
+          onchange="updateSubAccount('${acct}','holding',this.value)" style="padding:4px 6px;font-size:11px;width:80px;flex:0 0 80px">
+        <span style="color:var(--text2);white-space:nowrap">资产 ¥${asset.toLocaleString()}</span>
+        <span style="color:var(--gold);white-space:nowrap;font-weight:600">占比 ${pct}%</span>
       </div>
     </div>`;
   }).join('');
