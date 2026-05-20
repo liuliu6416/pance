@@ -1829,7 +1829,7 @@ async function verifyCode() {
   updateMineTab();
 }
 
-let _appVersion = '47';
+let _appVersion = '48';
 async function checkVersion() {
   try {
     const resp = await fetch('./version.json?t=' + Date.now());
@@ -1965,7 +1965,7 @@ function updateMineTab() {
 const SUB_ACCOUNTS = ['A','B','C','D','F'];
 function getSubAccounts() {
   const data = Store.get('pance_sub_accounts');
-  return data || {A:{asset:0,cash:0,holding:0},B:{asset:0,cash:0,holding:0},C:{asset:0,cash:0,holding:0},D:{asset:0,cash:0,holding:0},F:{asset:0,cash:0,holding:0}};
+  return data || {A:{cash:0,holding:0},B:{cash:0,holding:0},C:{cash:0,holding:0},D:{cash:0,holding:0},F:{cash:0,holding:0}};
 }
 function saveSubAccounts(data) { Store.set('pance_sub_accounts', data); renderSubAccounts(); }
 
@@ -1973,15 +1973,15 @@ function renderSubAccounts() {
   const accounts = getSubAccounts();
   const el = document.getElementById('subAccounts');
   if (!el) return;
-  let totalAsset = 0, totalCash = 0, totalHolding = 0;
+  let totalCash = 0, totalHolding = 0;
   SUB_ACCOUNTS.forEach(acct => {
-    const a = accounts[acct] || {asset:0,cash:0,holding:0};
-    totalAsset += Number(a.asset) || 0;
+    const a = accounts[acct] || {cash:0,holding:0};
     totalCash += Number(a.cash) || 0;
     totalHolding += Number(a.holding) || 0;
   });
-
+  const totalAsset = totalCash + totalHolding;
   const ratio = totalAsset > 0 ? (totalHolding / totalAsset * 100).toFixed(1) : '0';
+
   document.getElementById('totalAssetVal').textContent = '¥' + totalAsset.toLocaleString();
   document.getElementById('totalCashVal').textContent = '¥' + totalCash.toLocaleString();
   document.getElementById('totalHoldingVal').textContent = '¥' + totalHolding.toLocaleString();
@@ -1990,20 +1990,22 @@ function renderSubAccounts() {
   document.getElementById('totalPosRatio').style.color = ratioColor;
 
   el.innerHTML = SUB_ACCOUNTS.map(acct => {
-    const a = accounts[acct] || {asset:0,cash:0,holding:0};
-    const pct = (Number(a.asset) || 0) > 0 ? ((Number(a.holding)||0) / (Number(a.asset)||1) * 100).toFixed(1) : '0';
+    const a = accounts[acct] || {cash:0,holding:0};
+    const cash = Number(a.cash) || 0;
+    const holding = Number(a.holding) || 0;
+    const asset = cash + holding;
+    const pct = asset > 0 ? (holding / asset * 100).toFixed(1) : '0';
     return `<div style="background:var(--card);border-radius:10px;padding:12px;margin-bottom:8px;border:1px solid var(--border)">
       <div style="font-weight:700;margin-bottom:8px;color:var(--gold)">📂 账户${acct}</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px">
-        <div><span style="color:var(--text2)">资产</span><br>
-          <input class="input" type="number" value="${a.asset||''}" placeholder="0" 
-            onchange="updateSubAccount('${acct}','asset',this.value)" style="padding:6px 8px;font-size:12px"></div>
         <div><span style="color:var(--text2)">现金</span><br>
           <input class="input" type="number" value="${a.cash||''}" placeholder="0"
             onchange="updateSubAccount('${acct}','cash',this.value)" style="padding:6px 8px;font-size:12px"></div>
         <div><span style="color:var(--text2)">持仓市值</span><br>
           <input class="input" type="number" value="${a.holding||''}" placeholder="0"
             onchange="updateSubAccount('${acct}','holding',this.value)" style="padding:6px 8px;font-size:12px"></div>
+        <div><span style="color:var(--text2)">资产</span><br>
+          <strong style="font-size:14px;color:var(--text)">¥${asset.toLocaleString()}</strong></div>
         <div><span style="color:var(--text2)">仓位占比</span><br>
           <strong style="font-size:14px;color:var(--gold)">${pct}%</strong></div>
       </div>
@@ -2013,7 +2015,7 @@ function renderSubAccounts() {
 
 function updateSubAccount(acct, field, value) {
   const accounts = getSubAccounts();
-  if (!accounts[acct]) accounts[acct] = {asset:0,cash:0,holding:0};
+  if (!accounts[acct]) accounts[acct] = {cash:0,holding:0};
   accounts[acct][field] = parseFloat(value) || 0;
   saveSubAccounts(accounts);
 }
