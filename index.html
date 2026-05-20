@@ -330,7 +330,7 @@ body{
     </div>
 
     <div class="card" id="subAccountCard">
-      <div class="card-header">📂 子账户 <span style="font-size:10px;color:var(--text2)">（点击展开/折叠）</span></div>
+      <div class="card-header">📂 子账户 <span style="font-size:10px;color:var(--text2)" id="updateTime"></span></div>
       <div id="subAccounts"></div>
     </div>
 
@@ -1829,7 +1829,7 @@ async function verifyCode() {
   updateMineTab();
 }
 
-let _appVersion = '49';
+let _appVersion = '50';
 async function checkVersion() {
   try {
     const resp = await fetch('./version.json?t=' + Date.now());
@@ -1962,20 +1962,25 @@ function updateMineTab() {
 // ==================== 初始化 ====================
 
 // ==================== 子账户系统 ====================
-const SUB_ACCOUNTS = ['A','B','C','D','F'];
 function getSubAccounts() {
   const data = Store.get('pance_sub_accounts');
-  return data || {A:{cash:0,holding:0},B:{cash:0,holding:0},C:{cash:0,holding:0},D:{cash:0,holding:0},F:{cash:0,holding:0}};
+  if (data && data._list) return data;
+  return {_list: ['A','B','C','D','F'], A:{cash:0,holding:0,memo:''},B:{cash:0,holding:0,memo:''},C:{cash:0,holding:0,memo:''},D:{cash:0,holding:0,memo:''},F:{cash:0,holding:0,memo:''}};
 }
-function saveSubAccounts(data) { Store.set('pance_sub_accounts', data); renderSubAccounts(); }
+function saveSubAccounts(data) {
+  data._updated = new Date().toLocaleString();
+  Store.set('pance_sub_accounts', data);
+  renderSubAccounts();
+}
 
 function renderSubAccounts() {
   const accounts = getSubAccounts();
+  const list = accounts._list || ['A','B','C','D','F'];
   const el = document.getElementById('subAccounts');
   if (!el) return;
   let totalCash = 0, totalHolding = 0;
-  SUB_ACCOUNTS.forEach(acct => {
-    const a = accounts[acct] || {cash:0,holding:0};
+  list.forEach(acct => {
+    const a = accounts[acct] || {cash:0,holding:0,memo:''};
     totalCash += Number(a.cash) || 0;
     totalHolding += Number(a.holding) || 0;
   });
@@ -1989,34 +1994,69 @@ function renderSubAccounts() {
   const ratioColor = ratio > 90 ? 'var(--danger)' : ratio > 80 ? 'var(--orange)' : ratio > 70 ? 'var(--blue)' : 'var(--safe)';
   document.getElementById('totalPosRatio').style.color = ratioColor;
 
-  el.innerHTML = SUB_ACCOUNTS.map(acct => {
-    const a = accounts[acct] || {cash:0,holding:0};
+  // 更新时间
+  const updated = accounts._updated || '';
+  const updateEl = document.getElementById('updateTime');
+  if (updateEl) updateEl.textContent = updated ? '上次更新：' + updated : '';
+
+  el.innerHTML = list.map(acct => {
+    const a = accounts[acct] || {cash:0,holding:0,memo:''};
     const cash = Number(a.cash) || 0;
     const holding = Number(a.holding) || 0;
     const asset = cash + holding;
     const pct = asset > 0 ? (holding / asset * 100).toFixed(1) : '0';
-    return `<div style="background:var(--card);border-radius:8px;padding:10px;margin-bottom:6px;border:1px solid var(--border)">
-      <div style="font-weight:600;margin-bottom:4px;font-size:13px;color:var(--gold)">📂 账户${acct}</div>
-      <div style="display:flex;align-items:center;gap:8px;font-size:11px;flex-wrap:wrap">
-        <span style="color:var(--text2);white-space:nowrap">现金</span>
-        <input class="input" type="number" value="${a.cash||''}" placeholder="0"
-          onchange="updateSubAccount('${acct}','cash',this.value)" style="padding:4px 6px;font-size:11px;width:80px;flex:0 0 80px">
-        <span style="color:var(--text2);white-space:nowrap">市值</span>
-        <input class="input" type="number" value="${a.holding||''}" placeholder="0"
-          onchange="updateSubAccount('${acct}','holding',this.value)" style="padding:4px 6px;font-size:11px;width:80px;flex:0 0 80px">
-        <span style="color:var(--text2);white-space:nowrap">资产 ¥${asset.toLocaleString()}</span>
-        <span style="color:var(--gold);white-space:nowrap;font-weight:600">占比 ${pct}%</span>
-      </div>
-    </div>`;
-  }).join('');
+    return '<div style="background:var(--card);border-radius:8px;padding:10px;margin-bottom:6px;border:1px solid var(--border)">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">' +
+        '<span style="font-weight:600;font-size:13px;color:var(--gold)">📂 账户' + acct + '</span>' +
+        '<button class="btn btn-sm btn-danger" onclick="deleteSubAccount('' + acct + '')" style="padding:2px 8px;font-size:10px">✕</button>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:6px;font-size:11px;flex-wrap:wrap">' +
+        '<span style="color:var(--text2);white-space:nowrap">现金</span>' +
+        '<input class="input" type="number" value="' + (a.cash||'') + '" placeholder="0" onchange="updateSubAccount('' + acct + '','cash',this.value)" style="padding:3px 5px;font-size:11px;width:70px;flex:0 0 70px">' +
+        '<span style="color:var(--text2);white-space:nowrap">市值</span>' +
+        '<input class="input" type="number" value="' + (a.holding||'') + '" placeholder="0" onchange="updateSubAccount('' + acct + '','holding',this.value)" style="padding:3px 5px;font-size:11px;width:70px;flex:0 0 70px">' +
+        '<span style="color:var(--text2);white-space:nowrap">资产 ¥' + asset.toLocaleString() + '</span>' +
+        '<span style="color:var(--gold);white-space:nowrap;font-weight:600">占比 ' + pct + '%</span>' +
+      '</div>' +
+      '<input class="input" type="text" value="' + (a.memo||'').replace(/"/g,'&quot;') + '" placeholder="备注（股票名称/代码等）" onchange="updateSubAccount('' + acct + '','memo',this.value)" style="margin-top:4px;padding:3px 6px;font-size:10px;width:100%">' +
+    '</div>';
+  }).join('') +
+  '<button class="btn btn-sm btn-outline" onclick="addSubAccount()" style="width:100%;margin-top:4px">+ 添加账户</button>';
 }
-
 function updateSubAccount(acct, field, value) {
   const accounts = getSubAccounts();
-  if (!accounts[acct]) accounts[acct] = {cash:0,holding:0};
-  accounts[acct][field] = parseFloat(value) || 0;
+  if (!accounts[acct]) accounts[acct] = {cash:0,holding:0,memo:''};
+  accounts[acct][field] = (field === 'memo') ? value : (parseFloat(value) || 0);
   saveSubAccounts(accounts);
 }
+
+function addSubAccount() {
+  const accounts = getSubAccounts();
+  const list = accounts._list || [];
+  // 找下一个可用字母 A-Z
+  for (let i = 0; i < 26; i++) {
+    const letter = String.fromCharCode(65 + i);
+    if (!list.includes(letter)) {
+      list.push(letter);
+      accounts._list = list;
+      accounts[letter] = {cash:0,holding:0,memo:''};
+      saveSubAccounts(accounts);
+      return;
+    }
+  }
+  toast('已达最大账户数（A-Z共26个）');
+}
+
+function deleteSubAccount(acct) {
+  const accounts = getSubAccounts();
+  const list = accounts._list || [];
+  if (list.length <= 1) { toast('至少保留一个账户'); return; }
+  accounts._list = list.filter(a => a !== acct);
+  delete accounts[acct];
+  saveSubAccounts(accounts);
+}
+window.addSubAccount = addSubAccount;
+window.deleteSubAccount = deleteSubAccount;
 window.updateSubAccount = updateSubAccount;
 
 
