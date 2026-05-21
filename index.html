@@ -1829,7 +1829,7 @@ async function verifyCode() {
   updateMineTab();
 }
 
-let _appVersion = '55';
+let _appVersion = '56';
 async function checkVersion() {
   try {
     const resp = await fetch('./version.json?t=' + Date.now());
@@ -2007,8 +2007,9 @@ function renderSubAccounts() {
     const pct = asset > 0 ? (holding / asset * 100).toFixed(1) : '0';
     return '<div style="background:var(--card);border-radius:8px;padding:10px;margin-bottom:6px;border:1px solid var(--border)">' +
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">' +
-        '<span style="font-weight:600;font-size:13px;color:var(--gold)">📂 账户' + acct + ' 备注</span>' +
-        '<input class="input" type="text" value="' + (a.memo||'') + '" onchange="updateSubAccount(\'' + acct + '\',\'memo\',this.value)" style="padding:3px 6px;font-size:10px;width:85px;flex:0 0 85px;margin-left:2px">' +
+        '<span style="font-weight:600;font-size:13px;color:var(--gold)">📂 账户' + acct + '</span>' +
+        '<span style="color:var(--text2);font-size:10px;margin:0 6px">备注</span>' +
+        '<input class="input" type="text" value="' + (a.memo||'') + '" onchange="updateSubAccount(\'' + acct + '\',\'memo\',this.value)" style="padding:3px 6px;font-size:10px;width:85px;flex:0 0 85px">' +
         '<button class="btn btn-sm btn-danger" onclick="deleteSubAccount(\'' + acct + '\')" style="padding:2px 8px;font-size:10px">✕</button>' +
       '</div>' +
       '<div style="display:flex;align-items:center;gap:6px;font-size:11px;flex-wrap:wrap">' +
