@@ -307,6 +307,15 @@ body{
 
   <!-- Tab 1: 仓位安全 -->
   <div class="tab-content" id="tab-account">
+    <div class="card" style="text-align:center">
+      <div class="ring-wrap">
+        <canvas class="ring-canvas" id="posRingCanvas" width="180" height="180"></canvas>
+        <div class="ring-center">
+          <div class="ring-percent" id="posRingPercent" style="font-size:28px">0%</div>
+          <div class="ring-label">总仓位占比</div>
+        </div>
+      </div>
+    </div>
     <div class="card">
       <div class="card-header">💰 资产总览</div>
       <div class="overview-grid">
@@ -1829,7 +1838,7 @@ async function verifyCode() {
   updateMineTab();
 }
 
-let _appVersion = '56';
+let _appVersion = '57';
 async function checkVersion() {
   try {
     const resp = await fetch('./version.json?t=' + Date.now());
@@ -1973,6 +1982,26 @@ function saveSubAccounts(data) {
   renderSubAccounts();
 }
 
+function drawPosRing(pct) {
+  const canvas = document.getElementById('posRingCanvas');
+  if (!canvas) return;
+  const size = Math.min(canvas.clientWidth, 180);
+  if (size < 10) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = size * dpr; canvas.height = size * dpr;
+  ctx.scale(dpr, dpr);
+  const cx = size / 2, cy = size / 2, r = size / 2 - 14;
+  ctx.clearRect(0, 0, size, size);
+  ctx.beginPath(); ctx.arc(cx, cy, r, -Math.PI / 2, Math.PI * 1.5);
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = 14; ctx.stroke();
+  const p = Math.max(0, Math.min(100, pct)) / 100;
+  let color = '#2ed573';
+  if (p > 0.9) color = '#ff4757'; else if (p > 0.8) color = '#f5a623'; else if (p > 0.7) color = '#4a90d9';
+  ctx.beginPath(); ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + p * Math.PI * 2);
+  ctx.strokeStyle = color; ctx.lineWidth = 14; ctx.lineCap = 'round'; ctx.stroke();
+}
+
 function renderSubAccounts() {
   const accounts = getSubAccounts();
   const list = accounts._list || ['A','B','C','D','F'];
@@ -1993,6 +2022,11 @@ function renderSubAccounts() {
   document.getElementById('totalPosRatio').textContent = ratio + '%';
   const ratioColor = ratio > 90 ? 'var(--danger)' : ratio > 80 ? 'var(--orange)' : ratio > 70 ? 'var(--blue)' : 'var(--safe)';
   document.getElementById('totalPosRatio').style.color = ratioColor;
+
+  // 更新环形图
+  document.getElementById('posRingPercent').textContent = ratio + '%';
+  document.getElementById('posRingPercent').style.color = ratioColor;
+  drawPosRing(parseFloat(ratio));
 
   // 更新时间
   const updated = accounts._updated || '';
