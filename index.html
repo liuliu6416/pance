@@ -701,7 +701,7 @@ function getAdvices(score, changePct) {
 }
 
 // ==================== Canvas 折线图 ====================
-function drawLineChart(canvasId, data, baseLine) {
+function drawLineChart(canvasId, data, baseLine, formatY) {
   const canvas = $(canvasId);
   if (!canvas) return;
   const w = canvas.clientWidth;
@@ -713,7 +713,7 @@ function drawLineChart(canvasId, data, baseLine) {
   canvas.height = h * dpr;
   ctx.scale(dpr, dpr);
 
-  const pad = { top: 20, right: 16, bottom: 36, left: 40 };
+  const pad = { top: 24, right: 16, bottom: 36, left: formatY ? 52 : 40 };
   const pw = w - pad.left - pad.right;
   const ph = h - pad.top - pad.bottom;
 
@@ -781,7 +781,8 @@ function drawLineChart(canvasId, data, baseLine) {
   ctx.textAlign = 'right';
   for (let i = 0; i <= 4; i++) {
     const v = min + (max - min) * (i / 4);
-    ctx.fillText(Math.round(v), pad.left - 6, yScale(v) + 3);
+    const label = formatY ? formatY(v) : Math.round(v).toString();
+    ctx.fillText(label, pad.left - 6, yScale(v) + 3);
   }
 
   // X轴日期（每3个月标一个）
@@ -1842,7 +1843,7 @@ async function verifyCode() {
   updateMineTab();
 }
 
-let _appVersion = '58';
+let _appVersion = '59';
 async function checkVersion() {
   try {
     const resp = await fetch('./version.json?t=' + Date.now());
@@ -1998,7 +1999,7 @@ function drawAssetTrend() {
     }
     return;
   }
-  drawLineChart('#assetTrendChart', history, null);
+  drawLineChart('#assetTrendChart', history, null, function(v) { return '¥' + (v/10000).toFixed(0) + '万'; });
 }
 
 function drawPosRing(pct) {
