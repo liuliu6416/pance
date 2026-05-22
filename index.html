@@ -338,6 +338,10 @@ body{
       </div>
     </div>
 
+    <div class="card" style="padding:10px;margin-bottom:12px">
+      <div class="card-header">📈 总资产走势</div>
+      <canvas id="assetTrendChart" width="400" height="200" style="width:100%;height:200px"></canvas>
+    </div>
     <div class="card" id="subAccountCard">
       <div class="card-header">📂 子账户 <span style="font-size:10px;color:var(--text2)" id="updateTime"></span></div>
       <div id="subAccounts"></div>
@@ -1444,7 +1448,7 @@ function switchTab(idx) {
   $$('.tab-content').forEach((el, i) => el.classList.toggle('active', i === idx));
   $$('.nav-item').forEach((el, i) => el.classList.toggle('active', i === idx));
   if (idx === 0) updateSentiment();
-  if (idx === 1) renderSubAccounts();
+  if (idx === 1) { renderSubAccounts(); drawAssetTrend(); }
   if (idx === 2) updateMineTab();
 }
 
@@ -1838,7 +1842,7 @@ async function verifyCode() {
   updateMineTab();
 }
 
-let _appVersion = '57';
+let _appVersion = '58';
 async function checkVersion() {
   try {
     const resp = await fetch('./version.json?t=' + Date.now());
@@ -1982,6 +1986,21 @@ function saveSubAccounts(data) {
   renderSubAccounts();
 }
 
+function getAssetTrendHistory() { return Store.getArr('pance_asset_trend'); }
+function drawAssetTrend() {
+  const history = getAssetTrendHistory();
+  if (history.length < 2) {
+    const canvas = document.getElementById('assetTrendChart');
+    if (canvas) {
+      const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#8899aa'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('填写子账户后自动记录', canvas.width/4, 100);
+    }
+    return;
+  }
+  drawLineChart('#assetTrendChart', history, null);
+}
+
 function drawPosRing(pct) {
   const canvas = document.getElementById('posRingCanvas');
   if (!canvas) return;
@@ -2023,10 +2042,28 @@ function renderSubAccounts() {
   const ratioColor = ratio > 90 ? 'var(--danger)' : ratio > 80 ? 'var(--orange)' : ratio > 70 ? 'var(--blue)' : 'var(--safe)';
   document.getElementById('totalPosRatio').style.color = ratioColor;
 
+  // 记录资产历史
+  if (totalAsset > 0) {
+    const history = getAssetTrendHistory();
+    const today = new Date().toISOString().slice(5, 10);
+    const last = history[history.length - 1];
+    if (!last || last.date !== today) {
+      history.push({ date: today, value: Math.round(totalAsset) });
+      if (history.length > 90) history.shift();
+      Store.set('pance_asset_trend', history);
+    } else {
+      last.value = Math.round(totalAsset);
+      Store.set('pance_asset_trend', history);
+    }
+  }
+
   // 更新环形图
   document.getElementById('posRingPercent').textContent = ratio + '%';
   document.getElementById('posRingPercent').style.color = ratioColor;
   drawPosRing(parseFloat(ratio));
+
+  // 更新走势图
+  drawAssetTrend();
 
   // 更新时间
   const updated = accounts._updated || '';
@@ -2110,6 +2147,7 @@ function init() {
 
   // 渲染子账户
   renderSubAccounts();
+  drawAssetTrend();
 
   updateSentiment();
 
